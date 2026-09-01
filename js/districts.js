@@ -2,7 +2,7 @@
   "use strict";
 
   const K = window.KyivAlerts;
-  const CACHE_BUST = "c8e2a471";
+  const CACHE_BUST = "20260901b";
   const charts = {};
   let heatChart = null;
   let allRows = [];
