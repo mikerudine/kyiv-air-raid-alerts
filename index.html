@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тривоги Києва — статистика 2026</title>
+  <meta name="description" content="Статистика повітряних тривог у м. Києві за даними Київ Цифрового / KMDA">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+  <script src="js/dashboard.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Тривоги Києва</h1>
+      <p class="subtitle">Статистика повітряних тривог у м. Києві, 2026 рік (YTD)</p>
+    </header>
+
+    <div id="error" class="error-msg" role="alert"></div>
+    <div id="alert-banner" class="banner" role="status"></div>
+
+    <div id="loading" class="loading">Завантаження даних…</div>
+
+    <div id="dashboard" style="display:none">
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="kpi-label">закритих вікон 2026</div>
+          <div class="kpi-value" id="kpi-count">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">сума годин</div>
+          <div class="kpi-value" id="kpi-sum">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">середня тривалість</div>
+          <div class="kpi-value" id="kpi-mean">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">медіана тривалості</div>
+          <div class="kpi-value" id="kpi-median">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">остання подія у джерелі</div>
+          <div class="kpi-value" id="kpi-last" style="font-size:1rem">—</div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h2>М. Київ: сума годин тривоги по тижнях, 2026</h2>
+          <div class="chart-wrap"><canvas id="chart-sum"></canvas></div>
+          <div class="chart-source"></div>
+        </div>
+        <div class="chart-card">
+          <h2>середня тривалість одної тривоги, години</h2>
+          <div class="chart-wrap"><canvas id="chart-mean"></canvas></div>
+          <div class="chart-source"></div>
+        </div>
+        <div class="chart-card">
+          <h2>медіана тривалості одної тривоги, години</h2>
+          <div class="chart-wrap"><canvas id="chart-median"></canvas></div>
+          <div class="chart-source"></div>
+        </div>
+        <div class="chart-card">
+          <h2>кількість тривог, по тижнях</h2>
+          <div class="chart-wrap"><canvas id="chart-count"></canvas></div>
+          <div class="chart-source"></div>
+        </div>
+      </div>
+
+      <section class="recent">
+        <h2>Останні закриті вікна</h2>
+        <div class="table-wrap">
+          <table id="recent-table">
+            <thead>
+              <tr>
+                <th>дата</th>
+                <th>початок</th>
+                <th>кінець</th>
+                <th>години</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <p>
+        Джерело: <a href="https://data.kyivcity.gov.ua/dataset/statystyka-povitrianykh-tryvoh-u-misti-kyievi-dep-municipal" target="_blank" rel="noopener">Київ Цифровий / KMDA</a>
+        · <a href="https://data.kyivcity.gov.ua/dataset/statystyka-povitrianykh-tryvoh-u-misti-kyievi-dep-municipal/resource/cbf3758e-031c-42b0-a477-e731cd79b261" target="_blank" rel="noopener">XML-ресурс</a>
+      </p>
+    </footer>
+  </div>
+</body>
+</html>

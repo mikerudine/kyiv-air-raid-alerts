@@ -1,0 +1,30 @@
+{
+  "title": "Kyiv air-raid alerts (Kyiv Digital)",
+  "subtitle": "Official air-raid alert statistics for Kyiv city from Kyiv Digital / KMDA open data portal",
+  "description": "Closed alert windows, daily and weekly aggregates derived from the official Kyiv Digital XML feed. Kyiv city only — no oblast, no Telegram, no drone data.",
+  "licenses": [
+    {
+      "name": "CC0-1.0"
+    }
+  ],
+  "keywords": [
+    "ukraine",
+    "kyiv",
+    "air-raid",
+    "alerts",
+    "open-data",
+    "kyiv-digital"
+  ],
+  "collaborators": [],
+  "data": [
+    {
+      "path": "../data/alerts.csv"
+    },
+    {
+      "path": "../data/daily.csv"
+    },
+    {
+      "path": "../data/weekly.csv"
+    }
+  ]
+}
