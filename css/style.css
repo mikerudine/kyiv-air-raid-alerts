@@ -50,6 +50,142 @@ h1 {
   margin: 0;
 }
 
+.site-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.site-nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.site-nav a:hover {
+  color: var(--text);
+  border-color: #444;
+}
+
+.site-nav a.active {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.date-controls {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.date-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.date-row label {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.date-row input[type="date"] {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.55rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.date-row input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+}
+
+.preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.preset-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-right: 0.25rem;
+}
+
+.preset-btn {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.preset-btn:hover {
+  border-color: #444;
+}
+
+.preset-btn.preset-active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.range-caption {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.disclaimer {
+  background: var(--banner-bg);
+  border: 1px solid var(--banner-border);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.25rem;
+  color: #e8dcc8;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.disclaimer strong {
+  color: #ffd699;
+}
+
+.chart-card-wide {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+  .charts-grid.forecast-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+tbody tr.row-incomplete td:first-child {
+  color: var(--accent);
+}
+
+.incomplete-tag {
+  color: var(--accent);
+  font-size: 0.75rem;
+}
+
 .banner {
   display: none;
   background: var(--banner-bg);

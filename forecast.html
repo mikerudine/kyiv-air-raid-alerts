@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тривоги Києва — 7-денний прогноз</title>
+  <meta name="description" content="Емпірична оцінка очікуваних годин повітряних тривог у м. Києві на 7 днів вперед">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+  <script src="js/common.js" defer></script>
+  <script src="js/forecast.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Тривоги Києва</h1>
+      <p class="subtitle">7-денний прогноз (емпірична оцінка)</p>
+      <nav class="site-nav" aria-label="Навігація">
+        <a href="index.html">Тижні</a>
+        <a href="days.html">Дні</a>
+        <a href="forecast.html" class="active" aria-current="page">Прогноз</a>
+      </nav>
+    </header>
+
+    <div id="error" class="error-msg" role="alert"></div>
+    <div id="alert-banner" class="banner" role="status"></div>
+
+    <div id="loading" class="loading">Завантаження даних…</div>
+
+    <div id="dashboard" style="display:none">
+      <div class="disclaimer" role="note">
+        <strong>Це не офіційний продукт KMDA.</strong>
+        Оцінка побудована емпірично з останніх 28 повних календарних днів офіційних даних
+        (<span id="base-range">—</span>): для кожного з наступних 7 днів
+        (<span id="forecast-from">—</span> — <span id="forecast-to">—</span>)
+        очікувані години тривоги та кількість тривог обчислюються як середнє за відповідний
+        день тижня в базовому вікні (якщо є ≥3 спостережень), інакше — як загальне середнє
+        по базі; смуга 10–90% показує розкид історичних значень. Погодинна ймовірність старту
+        тривоги — частка днів у базі, коли тривога починалась у відповідній годині.
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card chart-card-wide">
+          <h2>очікувані години тривоги на 7 днів</h2>
+          <div class="chart-wrap"><canvas id="chart-forecast-hours"></canvas></div>
+          <div class="chart-source"></div>
+        </div>
+        <div class="chart-card chart-card-wide">
+          <h2>ймовірність старту тривоги за годиною (типовий день, база 28 днів)</h2>
+          <div class="chart-wrap"><canvas id="chart-hourly-prob"></canvas></div>
+        </div>
+      </div>
+
+      <section class="recent">
+        <h2>Таблиця прогнозу</h2>
+        <div class="table-wrap">
+          <table id="forecast-table">
+            <thead>
+              <tr>
+                <th>дата</th>
+                <th>години (очікувано)</th>
+                <th>години (10–90%)</th>
+                <th>тривоги (очікувано)</th>
+                <th>тривоги (10–90%)</th>
+                <th>метод</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <p>
+        Джерело: <a href="https://data.kyivcity.gov.ua/dataset/statystyka-povitrianykh-tryvoh-u-misti-kyievi-dep-municipal" target="_blank" rel="noopener">Київ Цифровий / KMDA</a>
+        · <a href="https://data.kyivcity.gov.ua/dataset/statystyka-povitrianykh-tryvoh-u-misti-kyievi-dep-municipal/resource/cbf3758e-031c-42b0-a477-e731cd79b261" target="_blank" rel="noopener">XML-ресурс</a>
+      </p>
+    </footer>
+  </div>
+</body>
+</html>
