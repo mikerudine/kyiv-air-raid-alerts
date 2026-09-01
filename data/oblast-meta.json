@@ -1,0 +1,46 @@
+{
+  "last_event": "2026-09-01 17:13:34",
+  "n_windows": 771,
+  "n_hours": 1349.1,
+  "n_mention_rows": 4741,
+  "n_windows_with_raion": 446,
+  "n_unspecified": 325,
+  "alert_open": true,
+  "scraped_at_kyiv": "2026-09-01T18:33:54.459286+03:00",
+  "sources": {
+    "kievreal1": 698,
+    "alerts_api": 73
+  },
+  "last_post_id": 128340,
+  "last_post_kyiv": "2026-09-01T18:29:59+03:00",
+  "n_posts": 14355,
+  "open_window": {
+    "start": "2026-09-01T17:13:34+03:00",
+    "start_id": 128309,
+    "start_text": "🚨 КИЇВСЬКА ОБЛАСТЬ - ОГОЛОШЕНА ПОВІТРЯНА ТРИВОГА Вишгородський район — загроза через бпла повз Славутич в бік Димера",
+    "source": "kievreal1"
+  },
+  "scrape": {
+    "n_new_posts": 118,
+    "pages": 8,
+    "stop_reason": "overlap_128164",
+    "blocked": false,
+    "overlapped_128164": true,
+    "new_id_range": [
+      128165,
+      128340
+    ],
+    "issues": []
+  },
+  "timezone": "Europe/Kyiv",
+  "parser": "parse_oblast_alerts.is_oblast_start/is_oblast_end",
+  "raions": [
+    "Білоцерківський",
+    "Бориспільський",
+    "Броварський",
+    "Бучанський",
+    "Вишгородський",
+    "Обухівський",
+    "Фастівський"
+  ]
+}

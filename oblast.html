@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тривоги Києва та області — згадки районів</title>
+  <meta name="description" content="10 міських і 7 обласних районів: згадки @kievreal1 під час офіційних вікон KMDA (місто) та @kievreal1 (область), 2026">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css?v=d7a4e91b">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.1/dist/chartjs-chart-matrix.min.js" defer></script>
+  <script src="js/common.js?v=d7a4e91b" defer></script>
+  <script src="js/oblast.js?v=d7a4e91b" defer></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Київ + область: згадки районів у @kievreal1</h1>
+      <p class="subtitle" id="period-caption">—</p>
+      <nav class="site-nav" aria-label="Навігація">
+        <a href="index.html">Тижні</a>
+        <a href="days.html">Дні</a>
+        <a href="forecast.html">Прогноз</a>
+        <a href="districts.html">Райони</a>
+        <a href="oblast.html" class="active" aria-current="page">Райони + область</a>
+      </nav>
+    </header>
+
+    <div id="error" class="error-msg" role="alert"></div>
+    <div id="alert-banner" class="banner" role="status"></div>
+
+    <div id="loading" class="loading">Завантаження даних…</div>
+
+    <div id="dashboard" style="display:none">
+      <div class="disclaimer" role="note">
+        <strong>Не офіційний продукт KMDA.</strong>
+        Годинник міських вікон — Київ Цифровий / KMDA.
+        Годинник обласних вікон — @kievreal1 (698 вікон kievreal1 + 73 історичні alerts_api).
+        Місця — сленг @kievreal1; це два різні годинники, їхні години не підсумовуються.
+        Троя / ТЕЦ-6 → Деснянський; Нивки → Шевченківський; Жуляни → Солом'янський; Чайки → Бучанський.
+      </div>
+
+      <section class="date-controls">
+        <div class="date-row">
+          <label for="date-from">від</label>
+          <input type="date" id="date-from">
+          <label for="date-to">до</label>
+          <input type="date" id="date-to">
+        </div>
+        <div class="preset-row">
+          <span class="preset-label">швидкий вибір:</span>
+          <button type="button" id="preset-7" class="preset-btn">7 днів</button>
+          <button type="button" id="preset-28" class="preset-btn preset-active">28 днів</button>
+          <button type="button" id="preset-90" class="preset-btn">90 днів</button>
+          <button type="button" id="preset-ytd" class="preset-btn">YTD</button>
+        </div>
+        <p id="range-caption" class="range-caption"></p>
+        <p class="range-filter-note">
+          Фільтр періоду: дата початку відповідного вікна (місто — KMDA <code>date</code>, область — @kievreal1 <code>date</code>).
+        </p>
+      </section>
+
+      <div id="raion-filter-root"></div>
+
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="kpi-label">місто: вікон KMDA</div>
+          <div class="kpi-value" id="kpi-city-windows" style="font-size:1.1rem">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">місто: год KMDA</div>
+          <div class="kpi-value" id="kpi-city-hours">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">область: вікон @kievreal1</div>
+          <div class="kpi-value" id="kpi-oblast-windows" style="font-size:1.1rem">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">область: год @kievreal1</div>
+          <div class="kpi-value" id="kpi-oblast-hours">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">згадки місто</div>
+          <div class="kpi-value" id="kpi-city-mentions">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">згадки область</div>
+          <div class="kpi-value" id="kpi-oblast-mentions">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">область: з ≥1 районною згадкою</div>
+          <div class="kpi-value" id="kpi-oblast-covered" style="font-size:1rem">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">область: без топоніма</div>
+          <div class="kpi-value" id="kpi-oblast-unspecified" style="font-size:1rem">—</div>
+        </div>
+      </div>
+
+      <div class="map-section">
+        <div class="map-wrap">
+          <svg id="combined-map" class="districts-svg" role="img" aria-label="Карта згадок 10 міських і 7 обласних районів"></svg>
+        </div>
+        <div id="map-legend" class="map-legend" aria-hidden="true"></div>
+      </div>
+
+      <section class="recent">
+        <h2>17 районів за кількістю згадок</h2>
+        <div class="table-wrap">
+          <table id="units-table">
+            <thead>
+              <tr>
+                <th>район</th>
+                <th>шар</th>
+                <th>згадок</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="first-last-section">
+        <h2>Перша vs остання згадка району у вікні тривоги</h2>
+        <p class="first-last-note">
+          Не офіційний продукт KMDA. Місто — перша/остання згадка міського району @kievreal1
+          всередині офіційного вікна KMDA. Область — перша/остання згадка обласного району
+          @kievreal1 всередині обласного вікна @kievreal1. Рейтинги розділені, щоб не змішувати два годинники.
+        </p>
+        <div class="first-last-group">
+          <h3>місто (KMDA)</h3>
+          <div class="first-last-charts">
+            <div class="chart-card">
+              <h3>де починається</h3>
+              <div class="chart-wrap chart-wrap-hbar"><canvas id="chart-city-first"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3>де закінчується</h3>
+              <div class="chart-wrap chart-wrap-hbar"><canvas id="chart-city-last"></canvas></div>
+            </div>
+          </div>
+        </div>
+        <div class="first-last-group">
+          <h3>область (@kievreal1)</h3>
+          <div class="first-last-charts">
+            <div class="chart-card">
+              <h3>де починається</h3>
+              <div class="chart-wrap chart-wrap-hbar"><canvas id="chart-oblast-first"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3>де закінчується</h3>
+              <div class="chart-wrap chart-wrap-hbar"><canvas id="chart-oblast-last"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="combos-section">
+        <h2>Найчастіші поєднання обласних районів у вікні @kievreal1</h2>
+        <p class="combos-note">
+          Поєднання = унікальний набір обласних районів (NAME_SHORT), згаданих у @kievreal1
+          всередині одного обласного вікна. Один район також є поєднанням.
+          Міські поєднання — на сторінці
+          <a href="districts.html">Райони</a>.
+        </p>
+        <div class="table-wrap">
+          <table id="combos-table">
+            <thead>
+              <tr>
+                <th>поєднання</th>
+                <th>районів</th>
+                <th>вікон</th>
+                <th>частка</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p id="combos-caption" class="combos-caption"></p>
+      </section>
+
+      <section class="toponyms-section">
+        <h2>Топоніми всередині обласного району</h2>
+        <p class="toponyms-note">
+          Частка = частина всіх обласних вікон цього району в обраному періоді. «Топонім відсутній» =
+          обласні вікна без жодної обласної згадки району в @kievreal1 (325 вікон YTD; видимий для «усі» та «не указано»).
+        </p>
+        <div class="table-wrap" id="toponyms-table-wrap">
+          <table id="toponyms-table">
+            <thead>
+              <tr>
+                <th>топонім</th>
+                <th>район</th>
+                <th>вікон</th>
+                <th>частка</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p id="toponyms-caption" class="toponyms-caption"></p>
+        <p id="toponyms-empty" class="toponyms-empty" hidden></p>
+      </section>
+
+      <section class="heatmap-section">
+        <h2>Обласний район × година: згадки @kievreal1 в обласних вікнах</h2>
+        <div class="heatmap-wrap">
+          <div class="chart-wrap chart-wrap-heatmap"><canvas id="chart-heatmap"></canvas></div>
+          <div id="heatmap-legend" class="heatmap-legend" aria-hidden="true"></div>
+        </div>
+        <p class="heatmap-footnote">
+          Годинник вікон — @kievreal1; година — колонка <code>hour</code> (година поста, Europe/Kyiv). Не офіційна карта районів.
+        </p>
+      </section>
+    </div>
+
+    <footer>
+      <p>
+        Місто (вікна): <a href="https://data.kyivcity.gov.ua/dataset/statystyka-povitrianykh-tryvoh-u-misti-kyievi-dep-municipal" target="_blank" rel="noopener">Київ Цифровий / KMDA</a>
+        · Область (вікна): @kievreal1
+        · Межі районів: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
+      </p>
+    </footer>
+  </div>
+</body>
+</html>

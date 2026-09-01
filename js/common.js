@@ -167,7 +167,7 @@
     return lastEvent ? lastEvent.slice(0, 10) : null;
   }
 
-  const CACHE_BUST = "c8e2f4a6";
+  const CACHE_BUST = "d7a4e91b";
 
   const OFFICIAL_RAIONS = [
     "Голосіївський",
@@ -395,7 +395,7 @@
       const next = new URLSearchParams();
       const raion = params.get("raion");
       if (raion) next.set("raion", raion);
-      if (page === "days.html" || page === "districts.html") {
+      if (page === "days.html" || page === "districts.html" || page === "oblast.html") {
         const from = params.get("from");
         const to = params.get("to");
         if (from) next.set("from", from);
