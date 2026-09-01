@@ -3,7 +3,7 @@
 
   const K = window.KyivAlerts;
   const MIN_WEEKDAY_SAMPLES = 3;
-  const BASE_DAYS = 28;
+  const FORECAST_BASE_DAYS = 7;
   const FORECAST_DAYS = 7;
   let meta = null;
   let chartHours = null;
@@ -37,7 +37,7 @@
 
   function baseWindow(dailyDates, lastEvent, dataMin) {
     const end = lastCompleteDay(dailyDates, lastEvent);
-    let start = K.addDays(end, -(BASE_DAYS - 1));
+    let start = K.addDays(end, -(FORECAST_BASE_DAYS - 1));
     if (K.compareDates(start, dataMin) < 0) start = dataMin;
     const dates = K.dateRangeInclusive(start, end);
     return { start, end, dates };
