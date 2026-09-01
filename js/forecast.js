@@ -8,6 +8,10 @@
   let meta = null;
   let chartHours = null;
   let chartHourly = null;
+  let dailyAll = [];
+  let alertsAll = [];
+  let windowRaionMap = null;
+  let raionFilter = "all";
 
   function showError(msg) {
     document.getElementById("loading").style.display = "none";
@@ -25,6 +29,18 @@
       };
     });
     return map;
+  }
+
+  function getDailyMap() {
+    if (raionFilter === "all") {
+      return buildDailyMap(dailyAll);
+    }
+    const filtered = K.filterAlertsByRaion(alertsAll, windowRaionMap, raionFilter);
+    return buildDailyMap(K.computeDailyFromAlerts(filtered));
+  }
+
+  function getFilteredAlerts() {
+    return K.filterAlertsByRaion(alertsAll, windowRaionMap, raionFilter);
   }
 
   function lastCompleteDay(dailyDates, lastEvent) {
@@ -138,7 +154,9 @@
     document.getElementById("base-range").textContent =
       K.formatDayLabelLong(model.base.start) + " — " + K.formatDayLabelLong(model.base.end);
     document.getElementById("forecast-from").textContent = K.formatDayLabelLong(model.days[0].date);
-    document.getElementById("forecast-to").textContent = K.formatDayLabelLong(model.days[model.days.length - 1].date);
+    document.getElementById("forecast-to").textContent = K.formatDayLabelLong(
+      model.days[model.days.length - 1].date
+    );
   }
 
   function renderCharts(model, hourlyProb) {
@@ -228,26 +246,35 @@
     });
   }
 
+  function renderDashboard() {
+    const dailyMap = getDailyMap();
+    const dailyDates = dailyAll.map((r) => r.date).sort(K.compareDates);
+    const model = buildForecast(dailyMap, dailyDates, meta.last_event);
+    const hourlyProb = hourlyStartProbability(getFilteredAlerts(), model.base.dates);
+    updateMetaText(model);
+    fillTable(model);
+    renderCharts(model, hourlyProb);
+  }
+
   async function init() {
     try {
-      const [metaRes, dailyRes, alertsRes] = await Promise.all([
-        fetch("data/meta.json"),
-        fetch("data/daily.csv"),
-        fetch("data/alerts.csv"),
+      const bust = K.CACHE_BUST;
+      const [metaRes, dailyRes, alertsRes, districtsRes] = await Promise.all([
+        fetch("data/meta.json?v=" + bust),
+        fetch("data/daily.csv?v=" + bust),
+        fetch("data/alerts.csv?v=" + bust),
+        fetch("data/districts.csv?v=" + bust),
       ]);
 
-      if (!metaRes.ok || !dailyRes.ok || !alertsRes.ok) {
+      if (!metaRes.ok || !dailyRes.ok || !alertsRes.ok || !districtsRes.ok) {
         throw new Error("Не вдалося завантажити дані");
       }
 
       meta = await metaRes.json();
-      const dailyRows = K.parseCSV(await dailyRes.text());
-      const alerts = K.parseCSV(await alertsRes.text());
-      const dailyMap = buildDailyMap(dailyRows);
-      const dailyDates = dailyRows.map((r) => r.date).sort(K.compareDates);
-
-      const model = buildForecast(dailyMap, dailyDates, meta.last_event);
-      const hourlyProb = hourlyStartProbability(alerts, model.base.dates);
+      dailyAll = K.parseCSV(await dailyRes.text());
+      alertsAll = K.parseCSV(await alertsRes.text());
+      const districtRows = K.parseCSV(await districtsRes.text());
+      windowRaionMap = K.buildWindowRaionMap(districtRows);
 
       document.getElementById("loading").style.display = "none";
       document.getElementById("dashboard").style.display = "block";
@@ -258,9 +285,16 @@
         banner.textContent = "⚠ Зараз триває повітряна тривога у м. Києві";
       }
 
-      updateMetaText(model);
-      fillTable(model);
-      renderCharts(model, hourlyProb);
+      K.initNavLinks();
+      K.mountRaionFilter(document.getElementById("raion-filter-root"), {
+        onChange(value) {
+          raionFilter = value;
+          renderDashboard();
+        },
+      });
+      raionFilter = K.getRaionFilter();
+
+      renderDashboard();
 
       document.querySelector(".chart-source").textContent =
         "Джерело: Київ Цифровий • до " + meta.last_event;

@@ -1,57 +1,18 @@
 (function () {
   "use strict";
 
+  const K = window.KyivAlerts;
   const YEAR = 2026;
-  const CHART_DEFAULTS = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: "#2a2a2a",
-        titleColor: "#e8e8e8",
-        bodyColor: "#ccc",
-        borderColor: "#444",
-        borderWidth: 1,
-      },
-    },
-    scales: {
-      x: {
-        ticks: { color: "#aaa", maxRotation: 45, minRotation: 45, font: { size: 10 } },
-        grid: { display: false },
-      },
-      y: {
-        ticks: { color: "#aaa", font: { size: 10 } },
-        grid: { color: "rgba(255,255,255,0.06)" },
-        beginAtZero: true,
-      },
-    },
-  };
-
   const charts = {};
 
-  function parseCSV(text) {
-    const lines = text.trim().split("\n");
-    const headers = lines[0].split(",");
-    return lines.slice(1).map((line) => {
-      const vals = line.split(",");
-      const row = {};
-      headers.forEach((h, i) => {
-        row[h.trim()] = vals[i]?.trim() ?? "";
-      });
-      return row;
-    });
-  }
+  let meta = null;
+  let weeklyAll = [];
+  let alertsAll = [];
+  let windowRaionMap = null;
+  let raionFilter = "all";
 
   function formatWeekLabel(weekStart) {
-    const d = new Date(weekStart + "T00:00:00");
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    return dd + "." + mm;
-  }
-
-  function barColors(values, normalColor, lastColor) {
-    return values.map((_, i) => (i === values.length - 1 ? lastColor : normalColor));
+    return K.formatDayLabel(weekStart);
   }
 
   function makeChart(canvasId, yLabel, dataKey, normalColor, lastColor, yMax) {
@@ -62,9 +23,11 @@
     const labels = weekly2026.map((w) => formatWeekLabel(w.week_start));
     const values = weekly2026.map((w) => parseFloat(w[dataKey]));
 
-    const opts = JSON.parse(JSON.stringify(CHART_DEFAULTS));
+    const opts = JSON.parse(JSON.stringify(K.CHART_DEFAULTS));
     opts.scales.y.title = { display: true, text: yLabel, color: "#aaa", font: { size: 11 } };
     if (yMax) opts.scales.y.max = yMax;
+
+    if (charts[canvasId]) charts[canvasId].destroy();
 
     charts[canvasId] = new Chart(canvas, {
       type: "bar",
@@ -73,62 +36,64 @@
         datasets: [
           {
             data: values,
-            backgroundColor: barColors(values, normalColor, lastColor),
+            backgroundColor: K.barColors(values, normalColor, lastColor),
             borderWidth: 0,
             borderRadius: 2,
           },
         ],
       },
       options: opts,
-      plugins: [
-        {
-          id: "valueLabels",
-          afterDatasetsDraw(chart) {
-            const ctx = chart.ctx;
-            chart.data.datasets.forEach((dataset, i) => {
-              const meta = chart.getDatasetMeta(i);
-              meta.data.forEach((bar, idx) => {
-                const val = dataset.data[idx];
-                const display = Number.isInteger(val) ? String(val) : val.toFixed(1);
-                ctx.save();
-                ctx.fillStyle = "#fff";
-                ctx.font = "10px sans-serif";
-                ctx.textAlign = "center";
-                ctx.textBaseline = "bottom";
-                ctx.fillText(display, bar.x, bar.y - 3);
-                ctx.restore();
-              });
-            });
-          },
-        },
-      ],
+      plugins: [K.valueLabelsPlugin()],
     });
   }
 
-  function updateKPIs(meta, alerts2026) {
-    const hours = alerts2026.map((a) => parseFloat(a.hours));
+  function refreshCharts() {
+    makeChart("chart-sum", "години", "sum_hours", "#c45c4a", "#d4a017");
+    makeChart("chart-mean", "години", "mean_hours", "#5b9bd5", "#e8913a", 2.5);
+    makeChart("chart-median", "години", "median_hours", "#4a9b8e", "#e8913a", 1.4);
+    makeChart("chart-count", "тривоги", "n_alerts", "#9b8ec4", "#d4a017", 60);
+  }
+
+  function filteredAlerts2026() {
+    const alerts2026 = alertsAll.filter((a) => a.date.startsWith(String(YEAR)));
+    return K.filterAlertsByRaion(alerts2026, windowRaionMap, raionFilter);
+  }
+
+  function updateWeeklyData() {
+    if (raionFilter === "all") {
+      window.__weekly2026 = weeklyAll;
+      return;
+    }
+    const filtered = filteredAlerts2026();
+    window.__weekly2026 = K.computeWeeklyFromAlerts(filtered);
+  }
+
+  function updateKPIs() {
+    const filtered = filteredAlerts2026();
+    const hours = filtered.map((a) => parseFloat(a.hours));
     const mean =
       hours.length > 0 ? (hours.reduce((s, h) => s + h, 0) / hours.length).toFixed(1) : "—";
     const sorted = [...hours].sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
-    const median =
+    const medianVal =
       sorted.length === 0
         ? "—"
         : sorted.length % 2 === 0
           ? ((sorted[mid - 1] + sorted[mid]) / 2).toFixed(1)
           : sorted[mid].toFixed(1);
+    const sum = hours.length > 0 ? hours.reduce((s, h) => s + h, 0).toFixed(1) : "—";
 
-    document.getElementById("kpi-count").textContent = meta.n_closed_2026;
-    document.getElementById("kpi-sum").textContent = meta.sum_hours_2026.toFixed(1);
+    document.getElementById("kpi-count").textContent = String(filtered.length);
+    document.getElementById("kpi-sum").textContent = sum;
     document.getElementById("kpi-mean").textContent = mean;
-    document.getElementById("kpi-median").textContent = median;
+    document.getElementById("kpi-median").textContent = medianVal;
     document.getElementById("kpi-last").textContent = meta.last_event;
   }
 
-  function fillRecentTable(alerts) {
+  function fillRecentTable() {
     const tbody = document.querySelector("#recent-table tbody");
     tbody.innerHTML = "";
-    const recent = alerts.slice(-20).reverse();
+    const recent = filteredAlerts2026().slice(-20).reverse();
     recent.forEach((row) => {
       const tr = document.createElement("tr");
       tr.innerHTML =
@@ -145,40 +110,47 @@
     });
   }
 
-  function updateSourceFooters(meta) {
+  function updateSourceFooters() {
     const text =
-      "Джерело: Київ Цифровий • до " +
-      meta.last_event.replace(" ", " ") +
-      " ";
+      "Джерело: Київ Цифровий • до " + meta.last_event.replace(" ", " ") + " ";
     document.querySelectorAll(".chart-source").forEach((el) => {
       el.textContent = text;
     });
   }
 
+  function renderDashboard() {
+    updateWeeklyData();
+    updateKPIs();
+    fillRecentTable();
+    refreshCharts();
+  }
+
   async function init() {
     try {
-      const [metaRes, weeklyRes, alertsRes] = await Promise.all([
-        fetch("data/meta.json"),
-        fetch("data/weekly.csv"),
-        fetch("data/alerts.csv"),
+      const bust = K.CACHE_BUST;
+      const [metaRes, weeklyRes, alertsRes, districtsRes] = await Promise.all([
+        fetch("data/meta.json?v=" + bust),
+        fetch("data/weekly.csv?v=" + bust),
+        fetch("data/alerts.csv?v=" + bust),
+        fetch("data/districts.csv?v=" + bust),
       ]);
 
-      if (!metaRes.ok || !weeklyRes.ok || !alertsRes.ok) {
+      if (!metaRes.ok || !weeklyRes.ok || !alertsRes.ok || !districtsRes.ok) {
         throw new Error("Не вдалося завантажити дані");
       }
 
-      const meta = await metaRes.json();
-      const weekly = parseCSV(await weeklyRes.text());
-      const alerts = parseCSV(await alertsRes.text());
+      meta = await metaRes.json();
+      const weekly = K.parseCSV(await weeklyRes.text());
+      alertsAll = K.parseCSV(await alertsRes.text());
+      const districtRows = K.parseCSV(await districtsRes.text());
+      windowRaionMap = K.buildWindowRaionMap(districtRows);
 
-      window.__weekly2026 = weekly
+      weeklyAll = weekly
         .filter((w) => parseInt(w.iso_year, 10) === YEAR)
         .sort((a, b) => {
           if (a.iso_year !== b.iso_year) return a.iso_year - b.iso_year;
           return a.iso_week - b.iso_week;
         });
-
-      const alerts2026 = alerts.filter((a) => a.date.startsWith(String(YEAR)));
 
       document.getElementById("loading").style.display = "none";
       document.getElementById("dashboard").style.display = "block";
@@ -189,14 +161,17 @@
         banner.textContent = "⚠ Зараз триває повітряна тривога у м. Києві";
       }
 
-      updateKPIs(meta, alerts2026);
-      fillRecentTable(alerts);
-      updateSourceFooters(meta);
+      K.initNavLinks();
+      K.mountRaionFilter(document.getElementById("raion-filter-root"), {
+        onChange(value) {
+          raionFilter = value;
+          renderDashboard();
+        },
+      });
+      raionFilter = K.getRaionFilter();
 
-      makeChart("chart-sum", "години", "sum_hours", "#c45c4a", "#d4a017");
-      makeChart("chart-mean", "години", "mean_hours", "#5b9bd5", "#e8913a", 2.5);
-      makeChart("chart-median", "години", "median_hours", "#4a9b8e", "#e8913a", 1.4);
-      makeChart("chart-count", "тривоги", "n_alerts", "#9b8ec4", "#d4a017", 60);
+      updateSourceFooters();
+      renderDashboard();
     } catch (err) {
       document.getElementById("loading").style.display = "none";
       const errEl = document.getElementById("error");

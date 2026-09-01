@@ -2,13 +2,15 @@
   "use strict";
 
   const K = window.KyivAlerts;
-  const CACHE_BUST = "20260901b";
+  const CACHE_BUST = K.CACHE_BUST;
   const charts = {};
   let heatChart = null;
   let allRows = [];
   let allAlerts = [];
   let geojson = null;
-  let raionList = [];
+  let windowRaionMap = null;
+  let raionList = K.OFFICIAL_RAIONS;
+  let raionFilter = "all";
   let dataMin = "";
   let dataMax = "";
 
@@ -22,12 +24,6 @@
     const errEl = document.getElementById("error");
     errEl.classList.add("visible");
     errEl.textContent = "Помилка: " + msg;
-  }
-
-  function normalizeRaion(name) {
-    return String(name || "")
-      .replace(/\s*район\s*$/i, "")
-      .replace(/\u2019/g, "'");
   }
 
   function windowStartDate(row) {
@@ -72,9 +68,7 @@
     if (s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear()) {
       return months[s.getMonth()] + " " + s.getFullYear();
     }
-    return (
-      K.formatDayLabelLong(start) + " — " + K.formatDayLabelLong(end)
-    );
+    return K.formatDayLabelLong(start) + " — " + K.formatDayLabelLong(end);
   }
 
   function defaultRange() {
@@ -97,7 +91,18 @@
     end = K.clampDate(end, dataMin, dataMax);
     startEl.value = start;
     endEl.value = end;
+    K.syncDateParams(start, end);
     return { start, end };
+  }
+
+  function alertsInRange(start, end) {
+    return allAlerts.filter(
+      (a) => K.compareDates(a.date, start) >= 0 && K.compareDates(a.date, end) <= 0
+    );
+  }
+
+  function filteredAlertsInRange(start, end) {
+    return K.filterAlertsByRaion(alertsInRange(start, end), windowRaionMap, raionFilter);
   }
 
   function rowsInRange(start, end) {
@@ -107,13 +112,17 @@
     });
   }
 
-  function windowsInRange(start, end) {
-    return allAlerts.filter(
-      (a) => K.compareDates(a.date, start) >= 0 && K.compareDates(a.date, end) <= 0
-    ).length;
+  function filteredRowsInRange(start, end) {
+    if (raionFilter === "none") return [];
+    const allowed = new Set(filteredAlertsInRange(start, end).map(K.alertWindowKey));
+    return rowsInRange(start, end).filter((row) => allowed.has(K.districtRowWindowKey(row)));
   }
 
-  function aggregate(rows, start, end) {
+  function windowKey(row) {
+    return row.window_start + "|" + row.window_end;
+  }
+
+  function aggregate(rows, filteredAlerts, start, end) {
     const counts = {};
     raionList.forEach((r) => {
       counts[r] = 0;
@@ -124,15 +133,16 @@
     });
 
     rows.forEach((row) => {
-      const raion = normalizeRaion(row.district);
-      if (!counts.hasOwnProperty(raion)) return;
+      const raion = K.normalizeRaion(row.district);
+      if (!Object.prototype.hasOwnProperty.call(counts, raion)) return;
       counts[raion] += 1;
       const h = parseInt(row.hour, 10);
       if (h >= 0 && h < 24) hour[raion][h] += 1;
     });
 
     const mentionedWindows = new Set(rows.map(windowKey));
-    const nWindows = windowsInRange(start, end);
+    const nWindows = filteredAlerts.length;
+    const sumHours = filteredAlerts.reduce((s, a) => s + (parseFloat(a.hours) || 0), 0);
 
     return {
       raions: raionList,
@@ -141,13 +151,11 @@
       n_city: rows.length,
       n_windows: nWindows,
       n_windows_with_mention: mentionedWindows.size,
-      coverage_pct: nWindows > 0 ? Math.round((mentionedWindows.size / nWindows) * 1000) / 10 : 0,
+      sum_hours: Math.round(sumHours * 10) / 10,
+      coverage_pct:
+        nWindows > 0 ? Math.round((mentionedWindows.size / nWindows) * 1000) / 10 : 0,
       date_range: [start, end],
     };
-  }
-
-  function windowKey(row) {
-    return row.window_start + "|" + row.window_end;
   }
 
   function formatCombinationLabel(districts) {
@@ -160,7 +168,7 @@
     rows.forEach((row) => {
       const key = windowKey(row);
       if (!byWindow[key]) byWindow[key] = new Set();
-      const raion = normalizeRaion(row.district);
+      const raion = K.normalizeRaion(row.district);
       if (raionList.indexOf(raion) >= 0) byWindow[key].add(raion);
     });
 
@@ -200,9 +208,53 @@
     };
   }
 
+  function computeToponyms(rows) {
+    const raionWindows = {};
+    const termWindows = {};
+
+    rows.forEach((row) => {
+      const raion = K.normalizeRaion(row.district);
+      if (raionList.indexOf(raion) < 0) return;
+      const pair = K.districtWindowPairKey(row);
+      const term = row.matched_term;
+      if (!raionWindows[raion]) raionWindows[raion] = new Set();
+      raionWindows[raion].add(pair);
+      const key = term + "\0" + raion;
+      if (!termWindows[key]) termWindows[key] = new Set();
+      termWindows[key].add(pair);
+    });
+
+    const entries = [];
+    Object.keys(termWindows).forEach((key) => {
+      const splitAt = key.indexOf("\0");
+      const term = key.slice(0, splitAt);
+      const raion = key.slice(splitAt + 1);
+      if (raionFilter !== "all" && raion !== raionFilter) return;
+      const windows = termWindows[key].size;
+      const denom = raionWindows[raion] ? raionWindows[raion].size : 0;
+      if (windows < 1 || denom < 1) return;
+      entries.push({
+        term,
+        raion,
+        windows,
+        denom,
+        share: Math.round((windows / denom) * 1000) / 10,
+      });
+    });
+
+    entries.sort((a, b) => {
+      if (b.windows !== a.windows) return b.windows - a.windows;
+      if (b.share !== a.share) return b.share - a.share;
+      return a.term.localeCompare(b.term, "uk");
+    });
+
+    return entries;
+  }
+
   function fillCombinationsTable(combos) {
     const tbody = document.querySelector("#combos-table tbody");
     tbody.innerHTML = "";
+    if (raionFilter === "none") return;
     const total = combos.totalWindows;
     combos.entries.slice(0, 15).forEach((entry) => {
       const pct = total > 0 ? Math.round((entry.count / total) * 1000) / 10 : 0;
@@ -224,6 +276,58 @@
       " унікальних поєднань · " +
       combos.size1Windows +
       " вікон лише з 1 районом";
+  }
+
+  function fillToponymsTable(entries) {
+    const tbody = document.querySelector("#toponyms-table tbody");
+    const tableWrap = document.getElementById("toponyms-table-wrap");
+    const captionEl = document.getElementById("toponyms-caption");
+    const emptyEl = document.getElementById("toponyms-empty");
+    tbody.innerHTML = "";
+
+    if (raionFilter === "none") {
+      tableWrap.hidden = true;
+      captionEl.textContent = "";
+      emptyEl.hidden = false;
+      emptyEl.textContent =
+        "Для «не указано» немає міських згадок @kievreal1 — таблиця топонімів порожня.";
+      return;
+    }
+
+    tableWrap.hidden = false;
+    emptyEl.hidden = true;
+
+    entries.forEach((entry) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" +
+        entry.term +
+        "</td><td>" +
+        entry.raion +
+        '</td><td class="num">' +
+        entry.windows +
+        '</td><td class="num">' +
+        entry.share +
+        "%</td>";
+      tbody.appendChild(tr);
+    });
+
+    if (entries.length > 0) {
+      const top = entries[0];
+      captionEl.textContent =
+        top.term +
+        ": " +
+        top.windows +
+        "/" +
+        top.denom +
+        " вікон " +
+        top.raion +
+        " (" +
+        top.share +
+        "%).";
+    } else {
+      captionEl.textContent = "";
+    }
   }
 
   function computeFirstLast(rows) {
@@ -248,7 +352,7 @@
       windowRows.forEach((row) => {
         const pid = postId(row);
         if (!posts[pid]) posts[pid] = new Set();
-        posts[pid].add(normalizeRaion(row.district));
+        posts[pid].add(K.normalizeRaion(row.district));
       });
       const pids = Object.keys(posts).map(Number);
       if (pids.length === 0) return;
@@ -272,8 +376,18 @@
 
   function updateKPIs(data) {
     document.getElementById("kpi-mentions").textContent = data.n_city;
-    document.getElementById("kpi-coverage").textContent =
-      data.n_windows_with_mention + " / " + data.n_windows + " (" + data.coverage_pct + "%)";
+    if (raionFilter === "none") {
+      document.getElementById("kpi-coverage").textContent =
+        data.n_windows + " вікон · " + data.sum_hours + " год";
+    } else {
+      document.getElementById("kpi-coverage").textContent =
+        data.n_windows_with_mention +
+        " / " +
+        data.n_windows +
+        " (" +
+        data.coverage_pct +
+        "%)";
+    }
     document.getElementById("kpi-range").textContent =
       data.date_range[0] + " — " + data.date_range[1];
     document.getElementById("period-caption").textContent = formatRangeCaption(
@@ -290,10 +404,11 @@
   function fillTable(data) {
     const tbody = document.querySelector("#districts-table tbody");
     tbody.innerHTML = "";
+    if (raionFilter === "none") return;
     sortedRaionsByCounts(data.counts).forEach((raion) => {
       const tr = document.createElement("tr");
       tr.innerHTML =
-        "<td>" + raion + "</td><td class=\"num\">" + data.counts[raion] + "</td>";
+        "<td>" + raion + '</td><td class="num">' + data.counts[raion] + "</td>";
       tbody.appendChild(tr);
     });
   }
@@ -401,7 +516,7 @@
     return bestRing ? ringCentroid(bestRing) : [0, 0];
   }
 
-  function buildLegend(min, max) {
+  function buildLegend() {
     const el = document.getElementById("map-legend");
     el.innerHTML = "";
 
@@ -432,19 +547,25 @@
   }
 
   function initChoropleth(data) {
+    const svg = document.getElementById("districts-map");
+    svg.innerHTML = "";
+
+    if (raionFilter === "none") {
+      document.getElementById("map-legend").innerHTML = "";
+      return;
+    }
+
     const counts = data.counts;
     const values = Object.values(counts);
     const min = Math.min(...values);
     const max = Math.max(...values);
     const bounds = collectBounds(geojson);
-    const svg = document.getElementById("districts-map");
     const width = 920;
     const height = MAP_HEIGHT;
     const pad = 24;
 
     svg.setAttribute("viewBox", "0 0 " + width + " " + height);
     svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-    svg.innerHTML = "";
 
     const project = makeProjector(bounds, width, height, pad);
     const raionsGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -453,7 +574,7 @@
     labelsGroup.setAttribute("class", "labels-layer");
 
     geojson.features.forEach((feature) => {
-      const key = normalizeRaion(feature.properties.name);
+      const key = K.normalizeRaion(feature.properties.name);
       const count = counts[key] ?? 0;
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       path.setAttribute("d", featureToPath(feature, project));
@@ -489,17 +610,30 @@
 
     svg.appendChild(raionsGroup);
     svg.appendChild(labelsGroup);
-    buildLegend(min, max);
+    buildLegend();
   }
 
   function heatColor(value, maxVal) {
     if (maxVal <= 0) return "rgba(255,247,188,0.15)";
     const t = value / maxVal;
-    const rgb = lerpColor(Math.min(1, t)).match(/\d+/g).map(Number);
+    const rgb = lerpColor(Math.min(1, t))
+      .match(/\d+/g)
+      .map(Number);
     return "rgba(" + rgb.join(",") + ",0.95)";
   }
 
   function initHeatmap(data) {
+    const legendEl = document.getElementById("heatmap-legend");
+    if (heatChart) {
+      heatChart.destroy();
+      heatChart = null;
+    }
+
+    if (raionFilter === "none") {
+      legendEl.innerHTML = "";
+      return;
+    }
+
     const raions = sortedRaionsByCounts(data.counts);
 
     let maxVal = 0;
@@ -517,8 +651,6 @@
     });
 
     const canvas = document.getElementById("chart-heatmap");
-    if (heatChart) heatChart.destroy();
-
     heatChart = new Chart(canvas, {
       type: "matrix",
       data: {
@@ -599,7 +731,6 @@
       },
     });
 
-    const legendEl = document.getElementById("heatmap-legend");
     legendEl.innerHTML = "";
     const bar = document.createElement("div");
     bar.className = "legend-bar legend-bar-vertical";
@@ -661,21 +792,25 @@
 
   function initFirstLastCharts(firstLast) {
     destroyBarCharts();
+    if (raionFilter === "none") return;
     makeHBarChart("chart-first", firstLast.first, "#5b9bd5");
     makeHBarChart("chart-last", firstLast.last, "#c45c4a");
   }
 
   function renderDashboard() {
     const { start, end } = getRangeValues();
-    const rows = rowsInRange(start, end);
-    const data = aggregate(rows, start, end);
+    const filteredAlerts = filteredAlertsInRange(start, end);
+    const rows = filteredRowsInRange(start, end);
+    const data = aggregate(rows, filteredAlerts, start, end);
     const firstLast = computeFirstLast(rows);
     const combos = computeCombinations(rows);
+    const toponyms = computeToponyms(rows);
 
     updateKPIs(data);
     updateRangeCaption(start, end);
     fillTable(data);
     fillCombinationsTable(combos);
+    fillToponymsTable(toponyms);
     initChoropleth(data);
 
     try {
@@ -753,19 +888,7 @@
       allRows = K.parseCSV(csvText);
       geojson = await geoRes.json();
       allAlerts = buildAlertDates(K.parseCSV(await alertsRes.text()));
-
-      raionList = [
-        "Голосіївський",
-        "Дарницький",
-        "Деснянський",
-        "Дніпровський",
-        "Оболонський",
-        "Печерський",
-        "Подільський",
-        "Святошинський",
-        "Солом'янський",
-        "Шевченківський",
-      ];
+      windowRaionMap = K.buildWindowRaionMap(allRows);
 
       const windowDates = [...new Set(allRows.map(windowStartDate))].sort(K.compareDates);
       const alertDates = [...new Set(allAlerts.map((a) => a.date))].sort(K.compareDates);
@@ -773,7 +896,8 @@
       dataMin = windowDates[0] || alertDates[0];
       dataMax = windowDates[windowDates.length - 1] || alertDates[alertDates.length - 1];
 
-      const def = defaultRange();
+      const urlRange = K.readDateParams(dataMin, dataMax);
+      const def = urlRange || defaultRange();
       document.getElementById("date-from").min = dataMin;
       document.getElementById("date-from").max = dataMax;
       document.getElementById("date-to").min = dataMin;
@@ -783,6 +907,15 @@
 
       document.getElementById("loading").style.display = "none";
       document.getElementById("dashboard").style.display = "block";
+
+      K.initNavLinks();
+      K.mountRaionFilter(document.getElementById("raion-filter-root"), {
+        onChange(value) {
+          raionFilter = value;
+          renderDashboard();
+        },
+      });
+      raionFilter = K.getRaionFilter();
 
       bindControls();
       renderDashboard();

@@ -6,11 +6,11 @@
   <title>Тривоги Києва — згадки районів</title>
   <meta name="description" content="Згадки районів Києва у @kievreal1 під час офіційних тривог KMDA, 2026">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=20260901b">
+  <link rel="stylesheet" href="css/style.css?v=f3a9b2e1">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.1/dist/chartjs-chart-matrix.min.js" defer></script>
-  <script src="js/common.js?v=20260901b" defer></script>
-  <script src="js/districts.js?v=20260901b" defer></script>
+  <script src="js/common.js?v=f3a9b2e1" defer></script>
+  <script src="js/districts.js?v=f3a9b2e1" defer></script>
 </head>
 <body>
   <div class="container">
@@ -55,6 +55,8 @@
         <p id="range-caption" class="range-caption"></p>
         <p class="range-filter-note">Фільтр періоду: дата початку офіційного вікна KMDA (<code>window_start</code>).</p>
       </section>
+
+      <div id="raion-filter-root"></div>
 
       <div class="kpi-row">
         <div class="kpi">
@@ -132,6 +134,29 @@
           </table>
         </div>
         <p id="combos-caption" class="combos-caption"></p>
+      </section>
+
+      <section class="toponyms-section">
+        <h2>Топоніми всередині району</h2>
+        <p class="toponyms-note">
+          Частка = частка офіційних вікон цього району, в яких трапився топонім (унікальні
+          <code>window_start</code>+<code>window_end</code>). Не години KMDA.
+        </p>
+        <div class="table-wrap" id="toponyms-table-wrap">
+          <table id="toponyms-table">
+            <thead>
+              <tr>
+                <th>топонім</th>
+                <th>район</th>
+                <th>вікон</th>
+                <th>частка району</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p id="toponyms-caption" class="toponyms-caption"></p>
+        <p id="toponyms-empty" class="toponyms-empty" hidden></p>
       </section>
 
       <section class="heatmap-section">
