@@ -352,3 +352,185 @@ footer a:hover {
 .error-msg.visible {
   display: block;
 }
+
+.map-section {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: stretch;
+}
+
+@media (max-width: 767px) {
+  .map-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+.map-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 420px;
+}
+
+#districts-map {
+  width: 100%;
+  height: 420px;
+  background: #0a0a0a;
+}
+
+.map-legend,
+.heatmap-legend {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  min-width: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.legend-bar {
+  display: flex;
+  width: 100%;
+  height: 14px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.legend-bar span {
+  flex: 1;
+}
+
+.legend-bar-vertical {
+  flex-direction: column;
+  width: 18px;
+  height: 180px;
+}
+
+.legend-bar-vertical span {
+  flex: 1;
+  width: 100%;
+}
+
+.legend-labels {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-top: 0.35rem;
+}
+
+.legend-labels-vertical {
+  flex-direction: column;
+  justify-content: space-between;
+  height: 180px;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.legend-caption {
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-top: 0.5rem;
+  text-align: center;
+  max-width: 8rem;
+  line-height: 1.3;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.heatmap-legend .legend-caption {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.map-legend .legend-caption {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.raion-label {
+  background: transparent !important;
+  border: none !important;
+}
+
+.raion-label-inner {
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 0 4px #000, 0 0 8px #000, 1px 1px 2px #000;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+.raion-name {
+  display: block;
+  font-weight: 600;
+}
+
+.raion-count {
+  display: block;
+  font-variant-numeric: tabular-nums;
+}
+
+.raion-tooltip {
+  background: rgba(26, 26, 26, 0.95);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.85rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.heatmap-section {
+  margin-bottom: 1.5rem;
+}
+
+.heatmap-section h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  text-align: center;
+}
+
+.heatmap-wrap {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 0.75rem;
+}
+
+@media (max-width: 767px) {
+  .heatmap-wrap {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-wrap-heatmap {
+  height: 360px;
+}
+
+.heatmap-footnote {
+  margin: 0.75rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.leaflet-control-attribution {
+  background: rgba(18, 18, 18, 0.85) !important;
+  color: var(--muted) !important;
+  font-size: 0.65rem !important;
+}
+
+.leaflet-control-attribution a {
+  color: #7eb8da !important;
+}
