@@ -4,10 +4,13 @@
   const K = window.KyivAlerts;
   const charts = {};
   let dailyMap = {};
-  let alerts = [];
+  let dailyAll = [];
+  let alertsAll = [];
+  let windowRaionMap = null;
   let meta = null;
   let dataMin = "";
   let dataMax = "";
+  let raionFilter = "all";
 
   function showError(msg) {
     document.getElementById("loading").style.display = "none";
@@ -52,7 +55,17 @@
     end = K.clampDate(end, dataMin, dataMax);
     startEl.value = start;
     endEl.value = end;
+    K.syncDateParams(start, end);
     return { start, end };
+  }
+
+  function rebuildDailyMap() {
+    if (raionFilter === "all") {
+      dailyMap = buildDailyMap(dailyAll);
+      return;
+    }
+    const filtered = K.filterAlertsByRaion(alertsAll, windowRaionMap, raionFilter);
+    dailyMap = buildDailyMap(K.computeDailyFromAlerts(filtered));
   }
 
   function seriesForRange(start, end) {
@@ -73,9 +86,12 @@
   function rangeKPIs(series) {
     const totalN = series.reduce((s, d) => s + d.n, 0);
     const totalSum = series.reduce((s, d) => s + d.sum_hours, 0);
-    const alertHours = alerts
+    const alertHours = K.filterAlertsByRaion(alertsAll, windowRaionMap, raionFilter)
       .filter((a) => {
-        return K.compareDates(a.date, series[0].date) >= 0 && K.compareDates(a.date, series[series.length - 1].date) <= 0;
+        return (
+          K.compareDates(a.date, series[0].date) >= 0 &&
+          K.compareDates(a.date, series[series.length - 1].date) <= 0
+        );
       })
       .map((a) => parseFloat(a.hours));
     const overallMean = totalN > 0 ? totalSum / totalN : null;
@@ -126,37 +142,42 @@
   function fillTable(series) {
     const tbody = document.querySelector("#days-table tbody");
     tbody.innerHTML = "";
-    series.slice().reverse().forEach((row) => {
-      const tr = document.createElement("tr");
-      if (row.incomplete) tr.classList.add("row-incomplete");
-      tr.innerHTML =
-        "<td>" +
-        K.formatDayLabelLong(row.date) +
-        " (" +
-        K.weekdayNameUk(K.weekdayIndex(row.date)) +
-        ")</td>" +
-        '<td class="num">' +
-        row.n +
-        "</td>" +
-        '<td class="num">' +
-        row.sum_hours.toFixed(1) +
-        "</td>" +
-        '<td class="num">' +
-        (row.n > 0 ? row.mean_hours.toFixed(1) : "—") +
-        "</td>" +
-        '<td class="num">' +
-        (row.n > 0 ? row.median_hours.toFixed(1) : "—") +
-        "</td>" +
-        (row.incomplete ? '<td class="incomplete-tag">неповний день</td>' : "<td></td>");
-      tbody.appendChild(tr);
-    });
+    series
+      .slice()
+      .reverse()
+      .forEach((row) => {
+        const tr = document.createElement("tr");
+        if (row.incomplete) tr.classList.add("row-incomplete");
+        tr.innerHTML =
+          "<td>" +
+          K.formatDayLabelLong(row.date) +
+          " (" +
+          K.weekdayNameUk(K.weekdayIndex(row.date)) +
+          ")</td>" +
+          '<td class="num">' +
+          row.n +
+          "</td>" +
+          '<td class="num">' +
+          row.sum_hours.toFixed(1) +
+          "</td>" +
+          '<td class="num">' +
+          (row.n > 0 ? row.mean_hours.toFixed(1) : "—") +
+          "</td>" +
+          '<td class="num">' +
+          (row.n > 0 ? row.median_hours.toFixed(1) : "—") +
+          "</td>" +
+          (row.incomplete ? '<td class="incomplete-tag">неповний день</td>' : "<td></td>");
+        tbody.appendChild(tr);
+      });
   }
 
   function updateKPIs(kpi) {
     document.getElementById("kpi-count").textContent = kpi.n;
     document.getElementById("kpi-sum").textContent = kpi.sum.toFixed(1);
-    document.getElementById("kpi-mean").textContent = kpi.mean != null ? kpi.mean.toFixed(1) : "—";
-    document.getElementById("kpi-median").textContent = kpi.median != null ? kpi.median.toFixed(1) : "—";
+    document.getElementById("kpi-mean").textContent =
+      kpi.mean != null ? kpi.mean.toFixed(1) : "—";
+    document.getElementById("kpi-median").textContent =
+      kpi.median != null ? kpi.median.toFixed(1) : "—";
   }
 
   function updateSourceFooters() {
@@ -173,6 +194,7 @@
   }
 
   function renderDashboard() {
+    rebuildDailyMap();
     const { start, end } = getRangeValues();
     const series = seriesForRange(start, end);
     const labels = series.map((d) => K.formatDayLabel(d.date));
@@ -247,26 +269,30 @@
 
   async function init() {
     try {
-      const [metaRes, dailyRes, alertsRes] = await Promise.all([
-        fetch("data/meta.json"),
-        fetch("data/daily.csv"),
-        fetch("data/alerts.csv"),
+      const bust = K.CACHE_BUST;
+      const [metaRes, dailyRes, alertsRes, districtsRes] = await Promise.all([
+        fetch("data/meta.json?v=" + bust),
+        fetch("data/daily.csv?v=" + bust),
+        fetch("data/alerts.csv?v=" + bust),
+        fetch("data/districts.csv?v=" + bust),
       ]);
 
-      if (!metaRes.ok || !dailyRes.ok || !alertsRes.ok) {
+      if (!metaRes.ok || !dailyRes.ok || !alertsRes.ok || !districtsRes.ok) {
         throw new Error("Не вдалося завантажити дані");
       }
 
       meta = await metaRes.json();
-      const dailyRows = K.parseCSV(await dailyRes.text());
-      alerts = K.parseCSV(await alertsRes.text());
-      dailyMap = buildDailyMap(dailyRows);
+      dailyAll = K.parseCSV(await dailyRes.text());
+      alertsAll = K.parseCSV(await alertsRes.text());
+      const districtRows = K.parseCSV(await districtsRes.text());
+      windowRaionMap = K.buildWindowRaionMap(districtRows);
 
-      const dates = dailyRows.map((r) => r.date).sort(K.compareDates);
+      const dates = dailyAll.map((r) => r.date).sort(K.compareDates);
       dataMin = dates[0];
       dataMax = dates[dates.length - 1];
 
-      const def = defaultRange();
+      const urlRange = K.readDateParams(dataMin, dataMax);
+      const def = urlRange || defaultRange();
       document.getElementById("date-from").min = dataMin;
       document.getElementById("date-from").max = dataMax;
       document.getElementById("date-to").min = dataMin;
@@ -282,6 +308,15 @@
         banner.classList.add("visible");
         banner.textContent = "⚠ Зараз триває повітряна тривога у м. Києві";
       }
+
+      K.initNavLinks();
+      K.mountRaionFilter(document.getElementById("raion-filter-root"), {
+        onChange(value) {
+          raionFilter = value;
+          renderDashboard();
+        },
+      });
+      raionFilter = K.getRaionFilter();
 
       updateSourceFooters();
       bindControls();
