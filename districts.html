@@ -6,11 +6,11 @@
   <title>Тривоги Києва — згадки районів</title>
   <meta name="description" content="Згадки районів Києва у @kievreal1 під час офіційних тривог KMDA, 2026">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=4bc5fbc2">
+  <link rel="stylesheet" href="css/style.css?v=c8e2a471">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.1/dist/chartjs-chart-matrix.min.js" defer></script>
-  <script src="js/common.js?v=4bc5fbc2" defer></script>
-  <script src="js/districts.js?v=4bc5fbc2" defer></script>
+  <script src="js/common.js?v=c8e2a471" defer></script>
+  <script src="js/districts.js?v=c8e2a471" defer></script>
 </head>
 <body>
   <div class="container">
@@ -110,6 +110,28 @@
             <div class="chart-wrap chart-wrap-hbar"><canvas id="chart-last"></canvas></div>
           </div>
         </div>
+      </section>
+
+      <section class="combos-section">
+        <h2>Найчастіші поєднання районів у одному вікні тривоги</h2>
+        <p class="combos-note">
+          не офіційний продукт KMDA. Поєднання = унікальний набір міських районів, згаданих у @kievreal1
+          всередині офіційного вікна. Один район також є поєднанням.
+        </p>
+        <div class="table-wrap">
+          <table id="combos-table">
+            <thead>
+              <tr>
+                <th>поєднання</th>
+                <th>районів</th>
+                <th>вікон</th>
+                <th>частка</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p id="combos-caption" class="combos-caption"></p>
       </section>
 
       <section class="heatmap-section">
