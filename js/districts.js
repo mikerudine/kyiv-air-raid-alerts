@@ -2,6 +2,7 @@
   "use strict";
 
   const K = window.KyivAlerts;
+  const CACHE_BUST = "4bc5fbc2";
   const charts = {};
   let heatChart = null;
   let allRows = [];
@@ -598,15 +599,32 @@
     updateRangeCaption(start, end);
     fillTable(data);
     initChoropleth(data);
-    initHeatmap(data);
-    initFirstLastCharts(firstLast);
+
+    try {
+      initHeatmap(data);
+    } catch (err) {
+      console.error("Heatmap chart failed:", err);
+    }
+
+    try {
+      initFirstLastCharts(firstLast);
+    } catch (err) {
+      console.error("First/last charts failed:", err);
+    }
   }
 
-  function applyPreset(days) {
+  function setPresetActive(activeId) {
+    document.querySelectorAll(".preset-btn").forEach((btn) => {
+      btn.classList.toggle("preset-active", Boolean(activeId) && btn.id === activeId);
+    });
+  }
+
+  function applyPreset(days, presetId) {
     const end = dataMax;
     const start = K.clampDate(K.addDays(end, -(days - 1)), dataMin, dataMax);
     document.getElementById("date-from").value = start;
     document.getElementById("date-to").value = end;
+    setPresetActive(presetId);
     renderDashboard();
   }
 
@@ -615,15 +633,21 @@
     const start = K.clampDate(year + "-01-01", dataMin, dataMax);
     document.getElementById("date-from").value = start;
     document.getElementById("date-to").value = dataMax;
+    setPresetActive("preset-ytd");
+    renderDashboard();
+  }
+
+  function onDateInputChange() {
+    setPresetActive(null);
     renderDashboard();
   }
 
   function bindControls() {
-    document.getElementById("date-from").addEventListener("change", renderDashboard);
-    document.getElementById("date-to").addEventListener("change", renderDashboard);
-    document.getElementById("preset-7").addEventListener("click", () => applyPreset(7));
-    document.getElementById("preset-28").addEventListener("click", () => applyPreset(28));
-    document.getElementById("preset-90").addEventListener("click", () => applyPreset(90));
+    document.getElementById("date-from").addEventListener("change", onDateInputChange);
+    document.getElementById("date-to").addEventListener("change", onDateInputChange);
+    document.getElementById("preset-7").addEventListener("click", () => applyPreset(7, "preset-7"));
+    document.getElementById("preset-28").addEventListener("click", () => applyPreset(28, "preset-28"));
+    document.getElementById("preset-90").addEventListener("click", () => applyPreset(90, "preset-90"));
     document.getElementById("preset-ytd").addEventListener("click", applyYTD);
   }
 
@@ -634,9 +658,9 @@
   async function init() {
     try {
       const [csvRes, geoRes, alertsRes] = await Promise.all([
-        fetch("data/districts.csv"),
-        fetch("data/kyiv-raions.geojson"),
-        fetch("data/alerts.csv"),
+        fetch("data/districts.csv?v=" + CACHE_BUST),
+        fetch("data/kyiv-raions.geojson?v=" + CACHE_BUST),
+        fetch("data/alerts.csv?v=" + CACHE_BUST),
       ]);
 
       if (!csvRes.ok || !geoRes.ok || !alertsRes.ok) {
