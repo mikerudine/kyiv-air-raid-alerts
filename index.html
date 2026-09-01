@@ -6,10 +6,10 @@
   <title>Тривоги Києва — статистика 2026</title>
   <meta name="description" content="Статистика повітряних тривог у м. Києві за даними Київ Цифрового / KMDA">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=d7a4e91b">
+  <link rel="stylesheet" href="css/style.css?v=e8c41f93">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
-  <script src="js/common.js?v=d7a4e91b" defer></script>
-  <script src="js/dashboard.js?v=d7a4e91b" defer></script>
+  <script src="js/common.js?v=e8c41f93" defer></script>
+  <script src="js/dashboard.js?v=e8c41f93" defer></script>
 </head>
 <body>
   <div class="container">
@@ -52,6 +52,10 @@
           <div class="kpi-label">остання подія у джерелі</div>
           <div class="kpi-value" id="kpi-last" style="font-size:1rem">—</div>
         </div>
+        <div class="kpi">
+          <div class="kpi-label">сума БпЛА 2026</div>
+          <div class="kpi-value" id="kpi-drones">—</div>
+        </div>
       </div>
 
       <div id="raion-filter-root"></div>
@@ -76,6 +80,11 @@
           <h2>кількість тривог, по тижнях</h2>
           <div class="chart-wrap"><canvas id="chart-count"></canvas></div>
           <div class="chart-source"></div>
+        </div>
+        <div class="chart-card">
+          <h2>оцінка БпЛА @kievreal1 по тижнях, 2026</h2>
+          <div class="chart-wrap"><canvas id="chart-drones"></canvas></div>
+          <div class="chart-source chart-source-drones">Оцінка унікальних БпЛА з @kievreal1 всередині офіційних вікон KMDA. Вікна без згадки не входять у суму.</div>
         </div>
       </div>
 

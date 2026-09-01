@@ -9,6 +9,7 @@
   let weeklyAll = [];
   let alertsAll = [];
   let windowRaionMap = null;
+  let droneMap = null;
   let raionFilter = "all";
 
   function formatWeekLabel(weekStart) {
@@ -52,6 +53,38 @@
     makeChart("chart-mean", "години", "mean_hours", "#5b9bd5", "#e8913a", 2.5);
     makeChart("chart-median", "години", "median_hours", "#4a9b8e", "#e8913a", 1.4);
     makeChart("chart-count", "тривоги", "n_alerts", "#9b8ec4", "#d4a017", 60);
+    makeDronesChart();
+  }
+
+  function makeDronesChart() {
+    const canvas = document.getElementById("chart-drones");
+    if (!canvas) return;
+
+    const weeklyDrones = window.__weeklyDrones2026 || [];
+    const labels = weeklyDrones.map((w) => formatWeekLabel(w.week_start));
+    const values = weeklyDrones.map((w) => w.drones || 0);
+
+    const opts = JSON.parse(JSON.stringify(K.CHART_DEFAULTS));
+    opts.scales.y.title = { display: true, text: "БпЛА", color: "#aaa", font: { size: 11 } };
+
+    if (charts["chart-drones"]) charts["chart-drones"].destroy();
+
+    charts["chart-drones"] = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            data: values,
+            backgroundColor: K.barColors(values, "#d47a4a", "#e8b84a"),
+            borderWidth: 0,
+            borderRadius: 2,
+          },
+        ],
+      },
+      options: opts,
+      plugins: [K.valueLabelsPlugin()],
+    });
   }
 
   function filteredAlerts2026() {
@@ -62,10 +95,26 @@
   function updateWeeklyData() {
     if (raionFilter === "all") {
       window.__weekly2026 = weeklyAll;
-      return;
+    } else {
+      const filtered = filteredAlerts2026();
+      window.__weekly2026 = K.computeWeeklyFromAlerts(filtered);
     }
     const filtered = filteredAlerts2026();
-    window.__weekly2026 = K.computeWeeklyFromAlerts(filtered);
+    const computed = K.computeWeeklyDronesFromAlerts(filtered, droneMap);
+    const byKey = {};
+    computed.forEach((w) => {
+      byKey[w.iso_year + "-" + w.iso_week] = w;
+    });
+    window.__weeklyDrones2026 = weeklyAll.map((w) => {
+      const row = byKey[w.iso_year + "-" + w.iso_week];
+      return {
+        week_start: w.week_start,
+        week_end: w.week_end,
+        iso_year: w.iso_year,
+        iso_week: w.iso_week,
+        drones: row ? row.drones : 0,
+      };
+    });
   }
 
   function updateKPIs() {
@@ -88,6 +137,9 @@
     document.getElementById("kpi-mean").textContent = mean;
     document.getElementById("kpi-median").textContent = medianVal;
     document.getElementById("kpi-last").textContent = meta.last_event;
+    document.getElementById("kpi-drones").textContent = String(
+      K.sumKnownDronesFromAlerts(filtered, droneMap)
+    );
   }
 
   function fillRecentTable() {
@@ -113,7 +165,7 @@
   function updateSourceFooters() {
     const text =
       "Джерело: Київ Цифровий • до " + meta.last_event.replace(" ", " ") + " ";
-    document.querySelectorAll(".chart-source").forEach((el) => {
+    document.querySelectorAll(".chart-source:not(.chart-source-drones)").forEach((el) => {
       el.textContent = text;
     });
   }
@@ -128,14 +180,15 @@
   async function init() {
     try {
       const bust = K.CACHE_BUST;
-      const [metaRes, weeklyRes, alertsRes, districtsRes] = await Promise.all([
+      const [metaRes, weeklyRes, alertsRes, districtsRes, dronesRes] = await Promise.all([
         fetch("data/meta.json?v=" + bust),
         fetch("data/weekly.csv?v=" + bust),
         fetch("data/alerts.csv?v=" + bust),
         fetch("data/districts.csv?v=" + bust),
+        fetch("data/drones.csv?v=" + bust),
       ]);
 
-      if (!metaRes.ok || !weeklyRes.ok || !alertsRes.ok || !districtsRes.ok) {
+      if (!metaRes.ok || !weeklyRes.ok || !alertsRes.ok || !districtsRes.ok || !dronesRes.ok) {
         throw new Error("Не вдалося завантажити дані");
       }
 
@@ -144,6 +197,7 @@
       alertsAll = K.parseCSV(await alertsRes.text());
       const districtRows = K.parseCSV(await districtsRes.text());
       windowRaionMap = K.buildWindowRaionMap(districtRows);
+      droneMap = K.buildDroneMap(K.parseCSV(await dronesRes.text()));
 
       weeklyAll = weekly
         .filter((w) => parseInt(w.iso_year, 10) === YEAR)

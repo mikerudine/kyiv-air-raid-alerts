@@ -167,7 +167,7 @@
     return lastEvent ? lastEvent.slice(0, 10) : null;
   }
 
-  const CACHE_BUST = "d7a4e91b";
+  const CACHE_BUST = "e8c41f93";
 
   const OFFICIAL_RAIONS = [
     "Голосіївський",
@@ -336,6 +336,95 @@
       });
   }
 
+  function droneWindowKey(row) {
+    return row.date + "|" + row.hour_start + "|" + row.hour_end + "|" + row.hours;
+  }
+
+  function buildDroneMap(droneRows) {
+    const map = new Map();
+    droneRows.forEach((row) => {
+      const raw = row.drones;
+      map.set(droneWindowKey(row), {
+        drones: raw === "" || raw == null ? null : parseInt(raw, 10),
+        confidence: row.confidence || "",
+      });
+    });
+    return map;
+  }
+
+  function lookupDrone(droneMap, alert) {
+    const entry = droneMap.get(alertWindowKey(alert));
+    if (!entry) return null;
+    return entry.drones;
+  }
+
+  function computeDailyDronesFromAlerts(alerts, droneMap) {
+    const byDate = {};
+    alerts.forEach((a) => {
+      if (!byDate[a.date]) {
+        byDate[a.date] = { sum: 0, n_known: 0, n_unknown: 0, n_windows: 0 };
+      }
+      const bucket = byDate[a.date];
+      bucket.n_windows += 1;
+      const drones = lookupDrone(droneMap, a);
+      if (drones === null) bucket.n_unknown += 1;
+      else {
+        bucket.n_known += 1;
+        bucket.sum += drones;
+      }
+    });
+    return byDate;
+  }
+
+  function formatDailyDronesCell(dayStats) {
+    if (!dayStats || dayStats.n_windows === 0 || dayStats.n_known === 0) return "—";
+    return String(dayStats.sum);
+  }
+
+  function computeWeeklyDronesFromAlerts(alerts, droneMap) {
+    const byWeek = {};
+
+    alerts.forEach((a) => {
+      const { start } = alertStartEnd(a);
+      const { iso_year, iso_week } = isoWeekParts(start);
+      const weekKey = iso_year + "-" + iso_week;
+      if (!byWeek[weekKey]) {
+        const bounds = isoWeekBounds(iso_year, iso_week);
+        byWeek[weekKey] = {
+          iso_year,
+          iso_week,
+          week_start: bounds.week_start,
+          week_end: bounds.week_end,
+          drones: 0,
+          n_known: 0,
+          n_unknown: 0,
+          n_windows: 0,
+        };
+      }
+      const bucket = byWeek[weekKey];
+      bucket.n_windows += 1;
+      const drones = lookupDrone(droneMap, a);
+      if (drones === null) bucket.n_unknown += 1;
+      else {
+        bucket.n_known += 1;
+        bucket.drones += drones;
+      }
+    });
+
+    return Object.keys(byWeek)
+      .sort()
+      .map((k) => byWeek[k]);
+  }
+
+  function sumKnownDronesFromAlerts(alerts, droneMap) {
+    let sum = 0;
+    alerts.forEach((a) => {
+      const drones = lookupDrone(droneMap, a);
+      if (drones !== null) sum += drones;
+    });
+    return sum;
+  }
+
   function computeWeeklyFromAlerts(alerts) {
     const startWeekCounts = {};
     const weekSumHours = {};
@@ -492,6 +581,13 @@
   global.KyivAlerts.getRaionFilter = getRaionFilter;
   global.KyivAlerts.raionToParam = raionToParam;
   global.KyivAlerts.filterAlertsByRaion = filterAlertsByRaion;
+  global.KyivAlerts.droneWindowKey = droneWindowKey;
+  global.KyivAlerts.buildDroneMap = buildDroneMap;
+  global.KyivAlerts.lookupDrone = lookupDrone;
+  global.KyivAlerts.computeDailyDronesFromAlerts = computeDailyDronesFromAlerts;
+  global.KyivAlerts.formatDailyDronesCell = formatDailyDronesCell;
+  global.KyivAlerts.computeWeeklyDronesFromAlerts = computeWeeklyDronesFromAlerts;
+  global.KyivAlerts.sumKnownDronesFromAlerts = sumKnownDronesFromAlerts;
   global.KyivAlerts.computeDailyFromAlerts = computeDailyFromAlerts;
   global.KyivAlerts.computeWeeklyFromAlerts = computeWeeklyFromAlerts;
   global.KyivAlerts.syncQueryParams = syncQueryParams;

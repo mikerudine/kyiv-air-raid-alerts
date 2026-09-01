@@ -6,10 +6,10 @@
   <title>Тривоги Києва — статистика по днях</title>
   <meta name="description" content="Щоденна статистика повітряних тривог у м. Києві за даними Київ Цифрового / KMDA">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=d7a4e91b">
+  <link rel="stylesheet" href="css/style.css?v=e8c41f93">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
-  <script src="js/common.js?v=d7a4e91b" defer></script>
-  <script src="js/days.js?v=d7a4e91b" defer></script>
+  <script src="js/common.js?v=e8c41f93" defer></script>
+  <script src="js/days.js?v=e8c41f93" defer></script>
 </head>
 <body>
   <div class="container">
@@ -67,6 +67,10 @@
           <div class="kpi-label">медіана тривалості</div>
           <div class="kpi-value" id="kpi-median">—</div>
         </div>
+        <div class="kpi">
+          <div class="kpi-label">сума БпЛА у періоді</div>
+          <div class="kpi-value" id="kpi-drones">—</div>
+        </div>
       </div>
 
       <div class="charts-grid">
@@ -90,6 +94,11 @@
           <div class="chart-wrap"><canvas id="chart-count"></canvas></div>
           <div class="chart-source"></div>
         </div>
+        <div class="chart-card">
+          <h2>оцінка БпЛА @kievreal1 по днях</h2>
+          <div class="chart-wrap"><canvas id="chart-drones"></canvas></div>
+          <div class="chart-source chart-source-drones">Оцінка унікальних БпЛА з @kievreal1 всередині офіційних вікон KMDA. Вікна без згадки не входять у суму.</div>
+        </div>
       </div>
 
       <section class="recent">
@@ -103,6 +112,7 @@
                 <th>сума год</th>
                 <th>середня</th>
                 <th>медіана</th>
+                <th>БпЛА</th>
                 <th></th>
               </tr>
             </thead>
