@@ -208,6 +208,30 @@
     };
   }
 
+  function sortToponymEntries(entries) {
+    entries.sort((a, b) => {
+      if (b.windows !== a.windows) return b.windows - a.windows;
+      if (b.share !== a.share) return b.share - a.share;
+      return a.term.localeCompare(b.term, "uk");
+    });
+    return entries;
+  }
+
+  function computeAbsentToponym(start, end) {
+    const alerts = alertsInRange(start, end);
+    const total = alerts.length;
+    if (total < 1) return null;
+    const absent = alerts.filter((a) => !windowRaionMap.has(K.alertWindowKey(a))).length;
+    return {
+      term: "Топонім відсутній",
+      raion: "не указано",
+      windows: absent,
+      denom: total,
+      share: Math.round((absent / total) * 1000) / 10,
+      isAbsent: true,
+    };
+  }
+
   function computeToponyms(rows) {
     const raionWindows = {};
     const termWindows = {};
@@ -242,13 +266,7 @@
       });
     });
 
-    entries.sort((a, b) => {
-      if (b.windows !== a.windows) return b.windows - a.windows;
-      if (b.share !== a.share) return b.share - a.share;
-      return a.term.localeCompare(b.term, "uk");
-    });
-
-    return entries;
+    return sortToponymEntries(entries);
   }
 
   function fillCombinationsTable(combos) {
@@ -278,21 +296,12 @@
       " вікон лише з 1 районом";
   }
 
-  function fillToponymsTable(entries) {
+  function fillToponymsTable(entries, absentEntry) {
     const tbody = document.querySelector("#toponyms-table tbody");
     const tableWrap = document.getElementById("toponyms-table-wrap");
     const captionEl = document.getElementById("toponyms-caption");
     const emptyEl = document.getElementById("toponyms-empty");
     tbody.innerHTML = "";
-
-    if (raionFilter === "none") {
-      tableWrap.hidden = true;
-      captionEl.textContent = "";
-      emptyEl.hidden = false;
-      emptyEl.textContent =
-        "Для «не указано» немає міських згадок @kievreal1 — таблиця топонімів порожня.";
-      return;
-    }
 
     tableWrap.hidden = false;
     emptyEl.hidden = true;
@@ -312,7 +321,17 @@
       tbody.appendChild(tr);
     });
 
-    if (entries.length > 0) {
+    if (absentEntry) {
+      captionEl.textContent =
+        absentEntry.term +
+        ": " +
+        absentEntry.windows +
+        "/" +
+        absentEntry.denom +
+        " вікон (" +
+        absentEntry.share +
+        "%).";
+    } else if (entries.length > 0) {
       const top = entries[0];
       captionEl.textContent =
         top.term +
@@ -805,12 +824,19 @@
     const firstLast = computeFirstLast(rows);
     const combos = computeCombinations(rows);
     const toponyms = computeToponyms(rows);
+    const absentEntry =
+      raionFilter === "all" || raionFilter === "none"
+        ? computeAbsentToponym(start, end)
+        : null;
+    const toponymEntries = absentEntry
+      ? sortToponymEntries([absentEntry, ...toponyms])
+      : toponyms;
 
     updateKPIs(data);
     updateRangeCaption(start, end);
     fillTable(data);
     fillCombinationsTable(combos);
-    fillToponymsTable(toponyms);
+    fillToponymsTable(toponymEntries, absentEntry);
     initChoropleth(data);
 
     try {

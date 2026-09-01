@@ -6,11 +6,11 @@
   <title>Тривоги Києва — згадки районів</title>
   <meta name="description" content="Згадки районів Києва у @kievreal1 під час офіційних тривог KMDA, 2026">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=f3a9b2e1">
+  <link rel="stylesheet" href="css/style.css?v=c8e2f4a6">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.1/dist/chartjs-chart-matrix.min.js" defer></script>
-  <script src="js/common.js?v=f3a9b2e1" defer></script>
-  <script src="js/districts.js?v=f3a9b2e1" defer></script>
+  <script src="js/common.js?v=c8e2f4a6" defer></script>
+  <script src="js/districts.js?v=c8e2f4a6" defer></script>
 </head>
 <body>
   <div class="container">
@@ -139,8 +139,8 @@
       <section class="toponyms-section">
         <h2>Топоніми всередині району</h2>
         <p class="toponyms-note">
-          Частка = частка офіційних вікон цього району, в яких трапився топонім (унікальні
-          <code>window_start</code>+<code>window_end</code>). Не години KMDA.
+          Частка = частина всіх офіційних вікон цього району в обраному періоді. «Топонім відсутній» =
+          офіційні вікна без жодної міської згадки району в @kievreal1.
         </p>
         <div class="table-wrap" id="toponyms-table-wrap">
           <table id="toponyms-table">
@@ -149,7 +149,7 @@
                 <th>топонім</th>
                 <th>район</th>
                 <th>вікон</th>
-                <th>частка району</th>
+                <th>частка</th>
               </tr>
             </thead>
             <tbody></tbody>
