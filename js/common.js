@@ -167,7 +167,7 @@
     return lastEvent ? lastEvent.slice(0, 10) : null;
   }
 
-  const CACHE_BUST = "f3a9b2e1";
+  const CACHE_BUST = "c8e2f4a6";
 
   const OFFICIAL_RAIONS = [
     "Голосіївський",
