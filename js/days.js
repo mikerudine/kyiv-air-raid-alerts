@@ -7,6 +7,7 @@
   let dailyAll = [];
   let alertsAll = [];
   let windowRaionMap = null;
+  let droneMap = null;
   let meta = null;
   let dataMin = "";
   let dataMax = "";
@@ -59,6 +60,21 @@
     return { start, end };
   }
 
+  function filteredAlerts() {
+    return K.filterAlertsByRaion(alertsAll, windowRaionMap, raionFilter);
+  }
+
+  function dailyDronesMap() {
+    return K.computeDailyDronesFromAlerts(filteredAlerts(), droneMap);
+  }
+
+  function rangeDroneSum(start, end) {
+    const alerts = filteredAlerts().filter(
+      (a) => K.compareDates(a.date, start) >= 0 && K.compareDates(a.date, end) <= 0
+    );
+    return K.sumKnownDronesFromAlerts(alerts, droneMap);
+  }
+
   function rebuildDailyMap() {
     if (raionFilter === "all") {
       dailyMap = buildDailyMap(dailyAll);
@@ -70,14 +86,18 @@
 
   function seriesForRange(start, end) {
     const dates = K.dateRangeInclusive(start, end);
+    const dronesByDate = dailyDronesMap();
     return dates.map((date) => {
       const row = dailyMap[date];
+      const droneRow = dronesByDate[date];
       return {
         date,
         n: row ? row.n : 0,
         sum_hours: row ? row.sum_hours : 0,
         mean_hours: row ? row.mean_hours : 0,
         median_hours: row ? row.median_hours : 0,
+        drones_sum: droneRow && droneRow.n_known > 0 ? droneRow.sum : 0,
+        drones_cell: K.formatDailyDronesCell(droneRow),
         incomplete: K.isIncompleteDay(date, meta.last_event),
       };
     });
@@ -166,23 +186,27 @@
           '<td class="num">' +
           (row.n > 0 ? row.median_hours.toFixed(1) : "—") +
           "</td>" +
+          '<td class="num">' +
+          row.drones_cell +
+          "</td>" +
           (row.incomplete ? '<td class="incomplete-tag">неповний день</td>' : "<td></td>");
         tbody.appendChild(tr);
       });
   }
 
-  function updateKPIs(kpi) {
+  function updateKPIs(kpi, droneSum) {
     document.getElementById("kpi-count").textContent = kpi.n;
     document.getElementById("kpi-sum").textContent = kpi.sum.toFixed(1);
     document.getElementById("kpi-mean").textContent =
       kpi.mean != null ? kpi.mean.toFixed(1) : "—";
     document.getElementById("kpi-median").textContent =
       kpi.median != null ? kpi.median.toFixed(1) : "—";
+    document.getElementById("kpi-drones").textContent = String(droneSum);
   }
 
   function updateSourceFooters() {
     const text = "Джерело: Київ Цифровий • до " + meta.last_event;
-    document.querySelectorAll(".chart-source").forEach((el) => {
+    document.querySelectorAll(".chart-source:not(.chart-source-drones)").forEach((el) => {
       el.textContent = text;
     });
   }
@@ -200,7 +224,7 @@
     const labels = series.map((d) => K.formatDayLabel(d.date));
     const kpi = rangeKPIs(series);
 
-    updateKPIs(kpi);
+    updateKPIs(kpi, rangeDroneSum(start, end));
     updateRangeCaption(start, end);
     fillTable(series);
 
@@ -240,6 +264,14 @@
       "#d4a017",
       60
     );
+    makeChart(
+      "chart-drones",
+      "БпЛА",
+      series.map((d) => d.drones_sum),
+      labels,
+      "#d47a4a",
+      "#e8b84a"
+    );
   }
 
   function applyPreset(days) {
@@ -270,14 +302,15 @@
   async function init() {
     try {
       const bust = K.CACHE_BUST;
-      const [metaRes, dailyRes, alertsRes, districtsRes] = await Promise.all([
+      const [metaRes, dailyRes, alertsRes, districtsRes, dronesRes] = await Promise.all([
         fetch("data/meta.json?v=" + bust),
         fetch("data/daily.csv?v=" + bust),
         fetch("data/alerts.csv?v=" + bust),
         fetch("data/districts.csv?v=" + bust),
+        fetch("data/drones.csv?v=" + bust),
       ]);
 
-      if (!metaRes.ok || !dailyRes.ok || !alertsRes.ok || !districtsRes.ok) {
+      if (!metaRes.ok || !dailyRes.ok || !alertsRes.ok || !districtsRes.ok || !dronesRes.ok) {
         throw new Error("Не вдалося завантажити дані");
       }
 
@@ -286,6 +319,7 @@
       alertsAll = K.parseCSV(await alertsRes.text());
       const districtRows = K.parseCSV(await districtsRes.text());
       windowRaionMap = K.buildWindowRaionMap(districtRows);
+      droneMap = K.buildDroneMap(K.parseCSV(await dronesRes.text()));
 
       const dates = dailyAll.map((r) => r.date).sort(K.compareDates);
       dataMin = dates[0];
