@@ -3,21 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Тривоги Києва — статистика 2026</title>
-  <meta name="description" content="Статистика повітряних тривог у м. Києві за даними Київ Цифрового / KMDA">
+  <title>Тривоги Києва — статистика по днях</title>
+  <meta name="description" content="Щоденна статистика повітряних тривог у м. Києві за даними Київ Цифрового / KMDA">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
-  <script src="js/dashboard.js" defer></script>
+  <script src="js/common.js" defer></script>
+  <script src="js/days.js" defer></script>
 </head>
 <body>
   <div class="container">
     <header>
       <h1>Тривоги Києва</h1>
-      <p class="subtitle">Статистика повітряних тривог у м. Києві, 2026 рік (YTD)</p>
+      <p class="subtitle">Статистика по днях</p>
       <nav class="site-nav" aria-label="Навігація">
-        <a href="index.html" class="active" aria-current="page">Тижні</a>
-        <a href="days.html">Дні</a>
+        <a href="index.html">Тижні</a>
+        <a href="days.html" class="active" aria-current="page">Дні</a>
         <a href="forecast.html">Прогноз</a>
       </nav>
     </header>
@@ -28,9 +29,26 @@
     <div id="loading" class="loading">Завантаження даних…</div>
 
     <div id="dashboard" style="display:none">
+      <section class="date-controls">
+        <div class="date-row">
+          <label for="date-from">від</label>
+          <input type="date" id="date-from">
+          <label for="date-to">до</label>
+          <input type="date" id="date-to">
+        </div>
+        <div class="preset-row">
+          <span class="preset-label">швидкий вибір:</span>
+          <button type="button" id="preset-7" class="preset-btn">7 днів</button>
+          <button type="button" id="preset-28" class="preset-btn preset-active">28 днів</button>
+          <button type="button" id="preset-90" class="preset-btn">90 днів</button>
+          <button type="button" id="preset-ytd" class="preset-btn">YTD</button>
+        </div>
+        <p id="range-caption" class="range-caption"></p>
+      </section>
+
       <div class="kpi-row">
         <div class="kpi">
-          <div class="kpi-label">закритих вікон 2026</div>
+          <div class="kpi-label">тривог у періоді</div>
           <div class="kpi-value" id="kpi-count">—</div>
         </div>
         <div class="kpi">
@@ -45,15 +63,11 @@
           <div class="kpi-label">медіана тривалості</div>
           <div class="kpi-value" id="kpi-median">—</div>
         </div>
-        <div class="kpi">
-          <div class="kpi-label">остання подія у джерелі</div>
-          <div class="kpi-value" id="kpi-last" style="font-size:1rem">—</div>
-        </div>
       </div>
 
       <div class="charts-grid">
         <div class="chart-card">
-          <h2>М. Київ: сума годин тривоги по тижнях, 2026</h2>
+          <h2>сума годин тривоги по днях</h2>
           <div class="chart-wrap"><canvas id="chart-sum"></canvas></div>
           <div class="chart-source"></div>
         </div>
@@ -68,22 +82,24 @@
           <div class="chart-source"></div>
         </div>
         <div class="chart-card">
-          <h2>кількість тривог, по тижнях</h2>
+          <h2>кількість тривог по днях</h2>
           <div class="chart-wrap"><canvas id="chart-count"></canvas></div>
           <div class="chart-source"></div>
         </div>
       </div>
 
       <section class="recent">
-        <h2>Останні закриті вікна</h2>
+        <h2>Дні у вибраному періоді</h2>
         <div class="table-wrap">
-          <table id="recent-table">
+          <table id="days-table">
             <thead>
               <tr>
                 <th>дата</th>
-                <th>початок</th>
-                <th>кінець</th>
-                <th>години</th>
+                <th>тривоги</th>
+                <th>сума год</th>
+                <th>середня</th>
+                <th>медіана</th>
+                <th></th>
               </tr>
             </thead>
             <tbody></tbody>
