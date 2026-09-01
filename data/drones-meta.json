@@ -1,1 +1,36 @@
-{"n_windows":463,"n_known":369,"n_unknown":94,"n_zero":79,"n_ballistic_only":78,"sum_drones":1388,"date_range":["2026-01-02","2026-09-01"],"generated_at_kyiv":"2026-09-01T21:31:56+03:00","source":"Unique hostile UAV from @kievreal1 posts inside official KMDA windows. Empty drones = unknown, not 0. Ballistic-only = 0."}
+{
+  "n_windows": 464,
+  "n_known": 370,
+  "n_unknown": 94,
+  "n_zero": 79,
+  "n_ballistic_only": 78,
+  "sum_drones": 1393,
+  "date_range": [
+    "2026-01-02",
+    "2026-09-01"
+  ],
+  "generated_at_kyiv": "2026-09-02T01:25:21+03:00",
+  "source": "Unique hostile UAV (шахед/БпЛА/герань/гербер/реактивні) from @kievreal1 posts whose datetime_kyiv is inside official KMDA XML closed windows. Windows matched to alerts.csv via date, hour_start, hour_end, hours (1 decimal). Ballistic/missile-only window = 0 drones. No UAV evidence = unknown (empty), not 0. Dedup near-identical posts within 120s. Estimator: estimate_oblast_drones.py as-is.",
+  "clocks": "KMDA XML (naive Europe/Kyiv, state=1 start, state=0 all-clear) ∩ alerts.csv",
+  "posts": {
+    "path": "/workspace/refresh-sep2/kievreal1-posts.json",
+    "n": 14497,
+    "range_kyiv": [
+      "2025-12-30T02:26:39+02:00",
+      "2026-09-02T00:13:04+03:00"
+    ],
+    "scraped_at_kyiv": "2026-09-02T01:25:21.204549+03:00"
+  },
+  "xml": {
+    "n_events": 4791,
+    "n_closed_all": 2369,
+    "n_closed_2026_xml": 464,
+    "extra_start": 47,
+    "orphan_end": 6,
+    "open_start": null,
+    "xml_last_event": "2026-09-01T21:44:10+03:00",
+    "xml_last_event_naive": "2026-09-01 21:44:10"
+  },
+  "xml_extra_skipped": [],
+  "alerts_csv_rows": 464
+}
