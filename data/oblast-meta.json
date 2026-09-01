@@ -6,14 +6,14 @@
   "n_windows_with_raion": 446,
   "n_unspecified": 325,
   "alert_open": true,
-  "scraped_at_kyiv": "2026-09-01T18:33:54.459286+03:00",
+  "scraped_at_kyiv": "2026-09-01T21:31:56+03:00",
   "sources": {
     "kievreal1": 698,
     "alerts_api": 73
   },
-  "last_post_id": 128340,
-  "last_post_kyiv": "2026-09-01T18:29:59+03:00",
-  "n_posts": 14355,
+  "last_post_id": 128480,
+  "last_post_kyiv": "2026-09-01T21:28:42+03:00",
+  "n_posts": 14487,
   "open_window": {
     "start": "2026-09-01T17:13:34+03:00",
     "start_id": 128309,

@@ -1,11 +1,1 @@
-{
-  "n_windows": 460,
-  "n_known": 366,
-  "n_unknown": 94,
-  "n_zero": 79,
-  "n_ballistic_only": 78,
-  "sum_drones": 1376,
-  "date_range": ["2026-01-02", "2026-09-01"],
-  "generated_at_kyiv": "2026-09-01T20:49:41+03:00",
-  "source": "Unique hostile UAV (шахед/БпЛА/герань/гербер/реактивні) from @kievreal1 posts inside official KMDA windows. Empty drones = unknown, not 0. Ballistic-only = 0."
-}
+{"n_windows":463,"n_known":369,"n_unknown":94,"n_zero":79,"n_ballistic_only":78,"sum_drones":1388,"date_range":["2026-01-02","2026-09-01"],"generated_at_kyiv":"2026-09-01T21:31:56+03:00","source":"Unique hostile UAV from @kievreal1 posts inside official KMDA windows. Empty drones = unknown, not 0. Ballistic-only = 0."}
