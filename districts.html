@@ -38,6 +38,24 @@
         Чайки та міста області не є міськими районами.
       </div>
 
+      <section class="date-controls">
+        <div class="date-row">
+          <label for="date-from">від</label>
+          <input type="date" id="date-from">
+          <label for="date-to">до</label>
+          <input type="date" id="date-to">
+        </div>
+        <div class="preset-row">
+          <span class="preset-label">швидкий вибір:</span>
+          <button type="button" id="preset-7" class="preset-btn">7 днів</button>
+          <button type="button" id="preset-28" class="preset-btn preset-active">28 днів</button>
+          <button type="button" id="preset-90" class="preset-btn">90 днів</button>
+          <button type="button" id="preset-ytd" class="preset-btn">YTD</button>
+        </div>
+        <p id="range-caption" class="range-caption"></p>
+        <p class="range-filter-note">Фільтр періоду: дата початку офіційного вікна KMDA (<code>window_start</code>).</p>
+      </section>
+
       <div class="kpi-row">
         <div class="kpi">
           <div class="kpi-label">міські згадки районів</div>
@@ -75,8 +93,27 @@
         </div>
       </section>
 
+      <section class="first-last-section">
+        <h2>Перша vs остання міська згадка району у вікні тривоги</h2>
+        <p class="first-last-note">
+          Не офіційний продукт KMDA. «Перша» / «Остання» — перша та остання згадка міського району
+          @kievreal1 всередині офіційного вікна KMDA (за мін./макс. id поста Telegram).
+          Якщо в одному пості названо кілька районів — рахуються всі.
+        </p>
+        <div class="first-last-charts">
+          <div class="chart-card">
+            <h3>де починається</h3>
+            <div class="chart-wrap chart-wrap-hbar"><canvas id="chart-first"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <h3>де закінчується</h3>
+            <div class="chart-wrap chart-wrap-hbar"><canvas id="chart-last"></canvas></div>
+          </div>
+        </div>
+      </section>
+
       <section class="heatmap-section">
-        <h2>Район × година: згадки @kievreal1 в офіційних вікнах KMDA, 2026</h2>
+        <h2>Район × година: згадки @kievreal1 в офіційних вікнах KMDA</h2>
         <div class="heatmap-wrap">
           <div class="chart-wrap chart-wrap-heatmap"><canvas id="chart-heatmap"></canvas></div>
           <div id="heatmap-legend" class="heatmap-legend" aria-hidden="true"></div>

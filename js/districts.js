@@ -2,7 +2,14 @@
   "use strict";
 
   const K = window.KyivAlerts;
+  const charts = {};
   let heatChart = null;
+  let allRows = [];
+  let allAlerts = [];
+  let geojson = null;
+  let raionList = [];
+  let dataMin = "";
+  let dataMax = "";
 
   const COLOR_LO = [255, 247, 188];
   const COLOR_HI = [127, 0, 0];
@@ -22,6 +29,17 @@
       .replace(/\u2019/g, "'");
   }
 
+  function windowStartDate(row) {
+    return row.window_start.slice(0, 10);
+  }
+
+  function postId(row) {
+    if (row.post_id) return parseInt(row.post_id, 10);
+    const url = row.post_url || "";
+    const part = url.split("/").pop();
+    return parseInt(part, 10);
+  }
+
   function lerpColor(t) {
     const clamped = Math.min(1, Math.max(0, t));
     const rgb = COLOR_LO.map((v, i) => Math.round(v + (COLOR_HI[i] - v) * clamped));
@@ -33,9 +51,7 @@
     return lerpColor((count - min) / (max - min));
   }
 
-  function formatRangeCaption(range) {
-    const start = K.parseDate(range[0]);
-    const end = K.parseDate(range[1]);
+  function formatRangeCaption(start, end) {
     const months = [
       "січень",
       "лютий",
@@ -50,10 +66,131 @@
       "листопад",
       "грудень",
     ];
-    if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-      return months[start.getMonth()] + " " + start.getFullYear();
+    const s = K.parseDate(start);
+    const e = K.parseDate(end);
+    if (s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear()) {
+      return months[s.getMonth()] + " " + s.getFullYear();
     }
-    return months[start.getMonth()] + " — " + end.getDate() + " " + months[end.getMonth()] + " " + end.getFullYear();
+    return (
+      K.formatDayLabelLong(start) + " — " + K.formatDayLabelLong(end)
+    );
+  }
+
+  function defaultRange() {
+    const end = dataMax;
+    const start = K.clampDate(K.addDays(end, -27), dataMin, dataMax);
+    return { start, end };
+  }
+
+  function getRangeValues() {
+    const startEl = document.getElementById("date-from");
+    const endEl = document.getElementById("date-to");
+    let start = startEl.value;
+    let end = endEl.value;
+    if (K.compareDates(start, end) > 0) {
+      const tmp = start;
+      start = end;
+      end = tmp;
+    }
+    start = K.clampDate(start, dataMin, dataMax);
+    end = K.clampDate(end, dataMin, dataMax);
+    startEl.value = start;
+    endEl.value = end;
+    return { start, end };
+  }
+
+  function rowsInRange(start, end) {
+    return allRows.filter((row) => {
+      const d = windowStartDate(row);
+      return K.compareDates(d, start) >= 0 && K.compareDates(d, end) <= 0;
+    });
+  }
+
+  function windowsInRange(start, end) {
+    return allAlerts.filter(
+      (a) => K.compareDates(a.date, start) >= 0 && K.compareDates(a.date, end) <= 0
+    ).length;
+  }
+
+  function aggregate(rows, start, end) {
+    const counts = {};
+    raionList.forEach((r) => {
+      counts[r] = 0;
+    });
+    const hour = {};
+    raionList.forEach((r) => {
+      hour[r] = new Array(24).fill(0);
+    });
+
+    rows.forEach((row) => {
+      const raion = normalizeRaion(row.district);
+      if (!counts.hasOwnProperty(raion)) return;
+      counts[raion] += 1;
+      const h = parseInt(row.hour, 10);
+      if (h >= 0 && h < 24) hour[raion][h] += 1;
+    });
+
+    const mentionedWindows = new Set(rows.map(windowKey));
+    const nWindows = windowsInRange(start, end);
+
+    return {
+      raions: raionList,
+      counts,
+      hour,
+      n_city: rows.length,
+      n_windows: nWindows,
+      n_windows_with_mention: mentionedWindows.size,
+      coverage_pct: nWindows > 0 ? Math.round((mentionedWindows.size / nWindows) * 1000) / 10 : 0,
+      date_range: [start, end],
+    };
+  }
+
+  function windowKey(row) {
+    return row.window_start + "|" + row.window_end;
+  }
+
+  function computeFirstLast(rows) {
+    const byWindow = {};
+    rows.forEach((row) => {
+      const key = windowKey(row);
+      if (!byWindow[key]) byWindow[key] = [];
+      byWindow[key].push(row);
+    });
+
+    const first = {};
+    const last = {};
+    raionList.forEach((r) => {
+      first[r] = 0;
+      last[r] = 0;
+    });
+
+    let nWindows = 0;
+    Object.keys(byWindow).forEach((key) => {
+      const windowRows = byWindow[key];
+      const posts = {};
+      windowRows.forEach((row) => {
+        const pid = postId(row);
+        if (!posts[pid]) posts[pid] = new Set();
+        posts[pid].add(normalizeRaion(row.district));
+      });
+      const pids = Object.keys(posts).map(Number);
+      if (pids.length === 0) return;
+      nWindows += 1;
+      const minPid = Math.min.apply(null, pids);
+      const maxPid = Math.max.apply(null, pids);
+      posts[minPid].forEach((d) => {
+        first[d] = (first[d] || 0) + 1;
+      });
+      posts[maxPid].forEach((d) => {
+        last[d] = (last[d] || 0) + 1;
+      });
+    });
+
+    return { first, last, nWindows };
+  }
+
+  function sortedRaionsByCounts(counts) {
+    return [...raionList].sort((a, b) => counts[b] - counts[a]);
   }
 
   function updateKPIs(data) {
@@ -62,14 +199,21 @@
       data.n_windows_with_mention + " / " + data.n_windows + " (" + data.coverage_pct + "%)";
     document.getElementById("kpi-range").textContent =
       data.date_range[0] + " — " + data.date_range[1];
-    document.getElementById("period-caption").textContent = formatRangeCaption(data.date_range);
+    document.getElementById("period-caption").textContent = formatRangeCaption(
+      data.date_range[0],
+      data.date_range[1]
+    );
+  }
+
+  function updateRangeCaption(start, end) {
+    document.getElementById("range-caption").textContent =
+      "Період (window_start): " + K.formatDayLabelLong(start) + " — " + K.formatDayLabelLong(end);
   }
 
   function fillTable(data) {
     const tbody = document.querySelector("#districts-table tbody");
     tbody.innerHTML = "";
-    const sorted = [...data.raions].sort((a, b) => data.counts[b] - data.counts[a]);
-    sorted.forEach((raion) => {
+    sortedRaionsByCounts(data.counts).forEach((raion) => {
       const tr = document.createElement("tr");
       tr.innerHTML =
         "<td>" + raion + "</td><td class=\"num\">" + data.counts[raion] + "</td>";
@@ -85,12 +229,12 @@
     }
   }
 
-  function collectBounds(geojson) {
+  function collectBounds(geo) {
     let minLon = Infinity;
     let maxLon = -Infinity;
     let minLat = Infinity;
     let maxLat = -Infinity;
-    geojson.features.forEach((feature) => {
+    geo.features.forEach((feature) => {
       iterRings(feature.geometry, (ring) => {
         ring.forEach(([lon, lat]) => {
           minLon = Math.min(minLon, lon);
@@ -210,7 +354,7 @@
     el.appendChild(cap);
   }
 
-  function initChoropleth(geojson, data) {
+  function initChoropleth(data) {
     const counts = data.counts;
     const values = Object.values(counts);
     const min = Math.min(...values);
@@ -279,7 +423,7 @@
   }
 
   function initHeatmap(data) {
-    const raions = [...data.raions].sort((a, b) => data.counts[b] - data.counts[a]);
+    const raions = sortedRaionsByCounts(data.counts);
 
     let maxVal = 0;
     raions.forEach((raion) => {
@@ -398,27 +542,148 @@
     legendEl.appendChild(cap);
   }
 
+  function destroyBarCharts() {
+    ["chart-first", "chart-last"].forEach((id) => {
+      if (charts[id]) {
+        charts[id].destroy();
+        delete charts[id];
+      }
+    });
+  }
+
+  function makeHBarChart(canvasId, counts, color) {
+    const sorted = sortedRaionsByCounts(counts).filter((r) => counts[r] > 0);
+    const labels = sorted;
+    const values = sorted.map((r) => counts[r]);
+
+    const opts = JSON.parse(JSON.stringify(K.CHART_DEFAULTS));
+    opts.indexAxis = "y";
+    opts.scales.x.beginAtZero = true;
+    opts.scales.x.ticks.color = "#aaa";
+    opts.scales.y.ticks.color = "#aaa";
+    opts.scales.y.grid = { display: false };
+    opts.scales.x.grid = { color: "rgba(255,255,255,0.06)" };
+
+    charts[canvasId] = new Chart(document.getElementById(canvasId), {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            data: values,
+            backgroundColor: color,
+            borderWidth: 0,
+            borderRadius: 2,
+          },
+        ],
+      },
+      options: opts,
+      plugins: [K.valueLabelsPlugin()],
+    });
+  }
+
+  function initFirstLastCharts(firstLast) {
+    destroyBarCharts();
+    makeHBarChart("chart-first", firstLast.first, "#5b9bd5");
+    makeHBarChart("chart-last", firstLast.last, "#c45c4a");
+  }
+
+  function renderDashboard() {
+    const { start, end } = getRangeValues();
+    const rows = rowsInRange(start, end);
+    const data = aggregate(rows, start, end);
+    const firstLast = computeFirstLast(rows);
+
+    updateKPIs(data);
+    updateRangeCaption(start, end);
+    fillTable(data);
+    initChoropleth(data);
+    initHeatmap(data);
+    initFirstLastCharts(firstLast);
+  }
+
+  function applyPreset(days) {
+    const end = dataMax;
+    const start = K.clampDate(K.addDays(end, -(days - 1)), dataMin, dataMax);
+    document.getElementById("date-from").value = start;
+    document.getElementById("date-to").value = end;
+    renderDashboard();
+  }
+
+  function applyYTD() {
+    const year = dataMax.slice(0, 4);
+    const start = K.clampDate(year + "-01-01", dataMin, dataMax);
+    document.getElementById("date-from").value = start;
+    document.getElementById("date-to").value = dataMax;
+    renderDashboard();
+  }
+
+  function bindControls() {
+    document.getElementById("date-from").addEventListener("change", renderDashboard);
+    document.getElementById("date-to").addEventListener("change", renderDashboard);
+    document.getElementById("preset-7").addEventListener("click", () => applyPreset(7));
+    document.getElementById("preset-28").addEventListener("click", () => applyPreset(28));
+    document.getElementById("preset-90").addEventListener("click", () => applyPreset(90));
+    document.getElementById("preset-ytd").addEventListener("click", applyYTD);
+  }
+
+  function buildAlertDates(alerts) {
+    return alerts.filter((a) => a.date.startsWith("2026"));
+  }
+
   async function init() {
     try {
-      const [dataRes, geoRes] = await Promise.all([
-        fetch("data/districts-counts.json"),
+      const [csvRes, geoRes, alertsRes] = await Promise.all([
+        fetch("data/districts.csv"),
         fetch("data/kyiv-raions.geojson"),
+        fetch("data/alerts.csv"),
       ]);
 
-      if (!dataRes.ok || !geoRes.ok) {
+      if (!csvRes.ok || !geoRes.ok || !alertsRes.ok) {
         throw new Error("Не вдалося завантажити дані");
       }
 
-      const data = await dataRes.json();
-      const geojson = await geoRes.json();
+      const csvText = await csvRes.text();
+      if (!csvText.trim()) {
+        throw new Error("data/districts.csv порожній — потрібен валідний файл даних");
+      }
+
+      allRows = K.parseCSV(csvText);
+      geojson = await geoRes.json();
+      allAlerts = buildAlertDates(K.parseCSV(await alertsRes.text()));
+
+      raionList = [
+        "Голосіївський",
+        "Дарницький",
+        "Деснянський",
+        "Дніпровський",
+        "Оболонський",
+        "Печерський",
+        "Подільський",
+        "Святошинський",
+        "Солом'янський",
+        "Шевченківський",
+      ];
+
+      const windowDates = [...new Set(allRows.map(windowStartDate))].sort(K.compareDates);
+      const alertDates = [...new Set(allAlerts.map((a) => a.date))].sort(K.compareDates);
+
+      dataMin = windowDates[0] || alertDates[0];
+      dataMax = windowDates[windowDates.length - 1] || alertDates[alertDates.length - 1];
+
+      const def = defaultRange();
+      document.getElementById("date-from").min = dataMin;
+      document.getElementById("date-from").max = dataMax;
+      document.getElementById("date-to").min = dataMin;
+      document.getElementById("date-to").max = dataMax;
+      document.getElementById("date-from").value = def.start;
+      document.getElementById("date-to").value = def.end;
 
       document.getElementById("loading").style.display = "none";
       document.getElementById("dashboard").style.display = "block";
 
-      updateKPIs(data);
-      fillTable(data);
-      initChoropleth(geojson, data);
-      initHeatmap(data);
+      bindControls();
+      renderDashboard();
     } catch (err) {
       showError(err.message);
     }
