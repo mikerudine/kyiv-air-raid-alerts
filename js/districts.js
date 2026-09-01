@@ -2,7 +2,7 @@
   "use strict";
 
   const K = window.KyivAlerts;
-  const CACHE_BUST = "4bc5fbc2";
+  const CACHE_BUST = "c8e2a471";
   const charts = {};
   let heatChart = null;
   let allRows = [];
@@ -148,6 +148,82 @@
 
   function windowKey(row) {
     return row.window_start + "|" + row.window_end;
+  }
+
+  function formatCombinationLabel(districts) {
+    if (districts.length === raionList.length) return "усі 10 районів";
+    return districts.join(" + ");
+  }
+
+  function computeCombinations(rows) {
+    const byWindow = {};
+    rows.forEach((row) => {
+      const key = windowKey(row);
+      if (!byWindow[key]) byWindow[key] = new Set();
+      const raion = normalizeRaion(row.district);
+      if (raionList.indexOf(raion) >= 0) byWindow[key].add(raion);
+    });
+
+    const comboCounts = {};
+    Object.keys(byWindow).forEach((key) => {
+      const set = byWindow[key];
+      if (set.size === 0) return;
+      const sorted = [...set].sort();
+      const comboKey = sorted.join("\0");
+      if (!comboCounts[comboKey]) {
+        comboCounts[comboKey] = { districts: sorted, count: 0 };
+      }
+      comboCounts[comboKey].count += 1;
+    });
+
+    const entries = Object.keys(comboCounts).map((k) => comboCounts[k]);
+    const totalWindows = entries.reduce((sum, e) => sum + e.count, 0);
+
+    entries.sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count;
+      if (a.districts.length !== b.districts.length) return a.districts.length - b.districts.length;
+      return formatCombinationLabel(a.districts).localeCompare(
+        formatCombinationLabel(b.districts),
+        "uk"
+      );
+    });
+
+    const size1Windows = entries
+      .filter((e) => e.districts.length === 1)
+      .reduce((sum, e) => sum + e.count, 0);
+
+    return {
+      entries,
+      totalWindows,
+      uniqueTypes: entries.length,
+      size1Windows,
+    };
+  }
+
+  function fillCombinationsTable(combos) {
+    const tbody = document.querySelector("#combos-table tbody");
+    tbody.innerHTML = "";
+    const total = combos.totalWindows;
+    combos.entries.slice(0, 15).forEach((entry) => {
+      const pct = total > 0 ? Math.round((entry.count / total) * 1000) / 10 : 0;
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" +
+        formatCombinationLabel(entry.districts) +
+        '</td><td class="num">' +
+        entry.districts.length +
+        '</td><td class="num">' +
+        entry.count +
+        '</td><td class="num">' +
+        pct +
+        "%</td>";
+      tbody.appendChild(tr);
+    });
+    document.getElementById("combos-caption").textContent =
+      combos.uniqueTypes +
+      " унікальних поєднань · " +
+      combos.size1Windows +
+      " вікон лише з 1 районом";
   }
 
   function computeFirstLast(rows) {
@@ -594,10 +670,12 @@
     const rows = rowsInRange(start, end);
     const data = aggregate(rows, start, end);
     const firstLast = computeFirstLast(rows);
+    const combos = computeCombinations(rows);
 
     updateKPIs(data);
     updateRangeCaption(start, end);
     fillTable(data);
+    fillCombinationsTable(combos);
     initChoropleth(data);
 
     try {

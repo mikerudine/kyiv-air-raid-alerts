@@ -563,6 +563,29 @@ footer a:hover {
   font-size: 0.72rem;
 }
 
+.combos-section {
+  margin-bottom: 1.5rem;
+}
+
+.combos-section h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.combos-note {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.combos-caption {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
 .first-last-section {
   margin-bottom: 1.5rem;
 }
