@@ -56,6 +56,30 @@
     makeDronesChart();
   }
 
+  function fillDronesCompareTable() {
+    const tbody = document.querySelector("#drones-compare-table tbody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    const weeklyDrones = window.__weeklyDrones2026 || [];
+    weeklyDrones.forEach((w) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" +
+        formatWeekLabel(w.week_start) +
+        "</td>" +
+        '<td class="num">' +
+        K.formatWeeklyDroneSourceCell(w, "kievreal1") +
+        "</td>" +
+        '<td class="num">' +
+        K.formatWeeklyDroneSourceCell(w, "war_monitor") +
+        "</td>" +
+        '<td class="num">' +
+        K.formatWeeklyDroneSourceCell(w, "vanek_nikolaev") +
+        "</td>";
+      tbody.appendChild(tr);
+    });
+  }
+
   function makeDronesChart() {
     const canvas = document.getElementById("chart-drones");
     if (!canvas) return;
@@ -113,6 +137,12 @@
         iso_year: w.iso_year,
         iso_week: w.iso_week,
         drones: row ? row.drones : 0,
+        drones_war_monitor: row ? row.drones_war_monitor : 0,
+        drones_vanek_nikolaev: row ? row.drones_vanek_nikolaev : 0,
+        n_known: row ? row.n_known : 0,
+        n_known_war_monitor: row ? row.n_known_war_monitor : 0,
+        n_known_vanek_nikolaev: row ? row.n_known_vanek_nikolaev : 0,
+        n_windows: row ? row.n_windows : 0,
       };
     });
   }
@@ -174,6 +204,7 @@
     updateWeeklyData();
     updateKPIs();
     fillRecentTable();
+    fillDronesCompareTable();
     refreshCharts();
   }
 

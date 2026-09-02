@@ -1,1 +1,35 @@
-{"n_windows":467,"n_known":372,"n_unknown":95,"n_zero":79,"n_ballistic_only":78,"sum_drones":1396,"date_range":["2026-01-02","2026-09-02"],"generated_at_kyiv":"2026-09-02T07:39:45+03:00","source":"Unique hostile UAV from @kievreal1 posts inside official KMDA windows. Empty drones = unknown, not 0. Ballistic-only = 0.","clocks":"KMDA XML (naive Europe/Kyiv, state=1 start, state=0 all-clear) ∩ alerts.csv"}
+{
+  "n_windows": 467,
+  "n_known": 372,
+  "n_unknown": 95,
+  "n_zero": 79,
+  "n_ballistic_only": 78,
+  "sum_drones": 1396,
+  "date_range": ["2026-01-02", "2026-09-02"],
+  "generated_at_kyiv": "2026-09-02T11:15:23+03:00",
+  "source": "Unique hostile UAV from @kievreal1 posts inside official KMDA windows. Empty drones = unknown, not 0. Ballistic-only = 0.",
+  "clocks": "KMDA XML (naive Europe/Kyiv, state=1 start, state=0 all-clear) ∩ alerts.csv",
+  "sources": {
+    "kievreal1": {
+      "channel": "@kievreal1",
+      "scope": "Kyiv city (local)",
+      "sum_drones": 1396,
+      "n_known": 372,
+      "n_unknown": 95
+    },
+    "war_monitor": {
+      "channel": "@war_monitor",
+      "scope": "national/federal (misses Kyiv more often)",
+      "sum_drones": 1301,
+      "n_known": 239,
+      "n_unknown": 228
+    },
+    "vanek_nikolaev": {
+      "channel": "@vanek_nikolaev",
+      "scope": "national/federal (misses Kyiv more often)",
+      "sum_drones": 826,
+      "n_known": 110,
+      "n_unknown": 357
+    }
+  }
+}

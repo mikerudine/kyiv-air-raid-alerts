@@ -6,10 +6,10 @@
   <title>Тривоги Києва — статистика 2026</title>
   <meta name="description" content="Статистика повітряних тривог у м. Києві за даними Київ Цифрового / KMDA">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=632676f8">
+  <link rel="stylesheet" href="css/style.css?v=6b547439">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
-  <script src="js/common.js?v=632676f8" defer></script>
-  <script src="js/dashboard.js?v=632676f8" defer></script>
+  <script src="js/common.js?v=6b547439" defer></script>
+  <script src="js/dashboard.js?v=6b547439" defer></script>
 </head>
 <body>
   <div class="container">
@@ -81,10 +81,25 @@
           <div class="chart-wrap"><canvas id="chart-count"></canvas></div>
           <div class="chart-source"></div>
         </div>
-        <div class="chart-card">
+        <div class="chart-card chart-card-wide">
           <h2>оцінка БпЛА @kievreal1 по тижнях, 2026</h2>
-          <div class="chart-wrap"><canvas id="chart-drones"></canvas></div>
-          <div class="chart-source chart-source-drones">Оцінка унікальних БпЛА з @kievreal1 всередині офіційних вікон KMDA. Вікна без згадки не входять у суму.</div>
+          <div class="drones-compare-row">
+            <div class="chart-wrap"><canvas id="chart-drones"></canvas></div>
+            <div class="drones-compare-table-wrap">
+              <table id="drones-compare-table" class="drones-compare-table">
+                <thead>
+                  <tr>
+                    <th>період</th>
+                    <th>@kievreal1</th>
+                    <th>@war_monitor</th>
+                    <th>@vanek_nikolaev</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="chart-source chart-source-drones">Три незалежні оцінки унікальних ворожих БпЛА всередині офіційних вікон KMDA. @kievreal1 — локальний київський канал; @war_monitor і @vanek_nikolaev — загальнонаціональні, тому частіше пропускають Київ (більше «—»). Порожнє поле = невідомо, не нуль.</div>
         </div>
       </div>
 
