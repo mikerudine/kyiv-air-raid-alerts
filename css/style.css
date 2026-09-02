@@ -281,6 +281,25 @@ h1 {
   font-variant-numeric: tabular-nums;
 }
 
+.drones-region-table-wrap {
+  max-height: 260px;
+}
+
+.drones-region-compare-table th,
+.drones-region-compare-table td {
+  font-size: 0.68rem;
+  white-space: normal;
+  line-height: 1.25;
+  max-width: 5.5rem;
+}
+
+@media (min-width: 900px) {
+  .drones-region-table-wrap {
+    flex: 0 1 48%;
+    max-height: 280px;
+  }
+}
+
 @media (min-width: 768px) {
   .charts-grid.forecast-grid {
     grid-template-columns: 1fr;

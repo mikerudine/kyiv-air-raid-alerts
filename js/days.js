@@ -8,6 +8,7 @@
   let alertsAll = [];
   let windowRaionMap = null;
   let droneMap = null;
+  let droneCompareDailyMap = null;
   let meta = null;
   let dataMin = "";
   let dataMax = "";
@@ -184,6 +185,87 @@
     });
   }
 
+  function fillDronesRegionCompareTable(series) {
+    const tbody = document.querySelector("#drones-region-compare-table tbody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    const dronesByDate = dailyDronesMap();
+    series.forEach((row) => {
+      const stats = dronesByDate[row.date];
+      const compare = K.lookupDroneCompareDaily(droneCompareDailyMap, row.date);
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" +
+        K.formatDayLabel(row.date) +
+        "</td>" +
+        '<td class="num">' +
+        K.formatDailyDroneSourceCell(stats, "kievreal1") +
+        "</td>" +
+        '<td class="num">' +
+        K.formatDailyDroneSourceCell(stats, "war_monitor") +
+        "</td>" +
+        '<td class="num">' +
+        K.formatDailyDroneSourceCell(stats, "vanek_nikolaev") +
+        "</td>" +
+        '<td class="num">' +
+        K.formatRegionCompareOblastCell(compare) +
+        "</td>" +
+        '<td class="num">' +
+        K.formatRegionCompareNationwideCell(compare, "war_monitor") +
+        "</td>" +
+        '<td class="num">' +
+        K.formatRegionCompareNationwideCell(compare, "vanek_nikolaev") +
+        "</td>" +
+        '<td class="num">' +
+        K.formatRegionCompareNationwideCell(compare, "genstab") +
+        "</td>";
+      tbody.appendChild(tr);
+    });
+  }
+
+  function makeDronesRegionChart(series, labels) {
+    const canvas = document.getElementById("chart-drones-region");
+    if (!canvas) return;
+
+    const dronesByDate = dailyDronesMap();
+    const cityValues = series.map((row) => {
+      const stats = dronesByDate[row.date];
+      if (!stats || stats.n_known === 0) return null;
+      return stats.sum;
+    });
+    const oblastValues = series.map((row) => {
+      const compare = K.lookupDroneCompareDaily(droneCompareDailyMap, row.date);
+      return K.chartDroneValue(compare ? compare.oblast_drones : null);
+    });
+
+    const opts = K.groupedDronesRegionChartOptions();
+
+    charts["chart-drones-region"] = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "м. Київ",
+            data: cityValues,
+            backgroundColor: "#d47a4a",
+            borderWidth: 0,
+            borderRadius: 2,
+          },
+          {
+            label: "Київська область",
+            data: oblastValues,
+            backgroundColor: "#5b9bd5",
+            borderWidth: 0,
+            borderRadius: 2,
+          },
+        ],
+      },
+      options: opts,
+      plugins: [K.valueLabelsPlugin()],
+    });
+  }
+
   function fillTable(series) {
     const tbody = document.querySelector("#days-table tbody");
     tbody.innerHTML = "";
@@ -260,6 +342,7 @@
     updateRangeCaption(start, end);
     fillTable(series);
     fillDronesCompareTable(series);
+    fillDronesRegionCompareTable(series);
 
     destroyCharts();
     makeChart(
@@ -305,6 +388,7 @@
       "#d47a4a",
       "#e8b84a"
     );
+    makeDronesRegionChart(series, labels);
   }
 
   function applyPreset(days) {
@@ -335,12 +419,14 @@
   async function init() {
     try {
       const bust = K.CACHE_BUST;
-      const [metaRes, dailyRes, alertsRes, districtsRes, dronesRes] = await Promise.all([
+      const [metaRes, dailyRes, alertsRes, districtsRes, dronesRes, compareDailyRes] =
+        await Promise.all([
         fetch("data/meta.json?v=" + bust),
         fetch("data/daily.csv?v=" + bust),
         fetch("data/alerts.csv?v=" + bust),
         fetch("data/districts.csv?v=" + bust),
         fetch("data/drones.csv?v=" + bust),
+        fetch("data/drones-compare-daily.csv?v=" + bust),
       ]);
 
       if (!metaRes.ok || !dailyRes.ok || !alertsRes.ok || !districtsRes.ok || !dronesRes.ok) {
@@ -353,6 +439,13 @@
       const districtRows = K.parseCSV(await districtsRes.text());
       windowRaionMap = K.buildWindowRaionMap(districtRows);
       droneMap = K.buildDroneMap(K.parseCSV(await dronesRes.text()));
+      if (compareDailyRes.ok) {
+        droneCompareDailyMap = K.buildDroneCompareDailyMap(
+          K.parseCSV(await compareDailyRes.text())
+        );
+      } else {
+        droneCompareDailyMap = new Map();
+      }
 
       const dates = dailyAll.map((r) => r.date).sort(K.compareDates);
       dataMin = dates[0];
