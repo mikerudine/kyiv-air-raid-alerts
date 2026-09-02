@@ -1,29 +1,34 @@
 {
-  "last_event": "2026-09-02 00:13:04",
-  "n_windows": 773,
-  "n_hours": 1354.3,
-  "n_mention_rows": 4834,
-  "n_windows_with_raion": 447,
+  "last_event": "2026-09-02 04:30:24",
+  "n_windows": 774,
+  "n_hours": 1354.7,
+  "n_mention_rows": 4837,
+  "n_windows_with_raion": 448,
   "n_unspecified": 326,
-  "alert_open": false,
-  "scraped_at_kyiv": "2026-09-02T01:25:21.204549+03:00",
+  "alert_open": true,
+  "scraped_at_kyiv": "2026-09-02T04:39:03.840941+03:00",
   "sources": {
-    "kievreal1": 700,
+    "kievreal1": 701,
     "alerts_api": 73
   },
-  "last_post_id": 128493,
-  "last_post_kyiv": "2026-09-02T00:13:04+03:00",
-  "n_posts": 14497,
-  "open_window": null,
+  "last_post_id": 128502,
+  "last_post_kyiv": "2026-09-02T04:30:24+03:00",
+  "n_posts": 14505,
+  "open_window": {
+    "start": "2026-09-02T04:30:24+03:00",
+    "start_id": 128502,
+    "start_text": "🚨 КИЇВСЬКА ОБЛАСТЬ - ОГОЛОШЕНА ПОВІТРЯНА ТРИВОГА",
+    "source": "kievreal1"
+  },
   "scrape": {
-    "n_new_posts": 10,
+    "n_new_posts": 8,
     "pages": 1,
-    "stop_reason": "overlap_128480",
+    "stop_reason": "overlap_128493",
     "blocked": false,
     "overlapped_128340": true,
     "new_id_range": [
-      128481,
-      128493
+      128494,
+      128502
     ],
     "issues": []
   },
