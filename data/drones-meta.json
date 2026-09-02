@@ -1,39 +1,36 @@
 {
-  "n_windows": 473,
-  "n_known": 378,
+  "n_windows": 474,
+  "n_known": 379,
   "n_unknown": 95,
   "n_zero": 79,
   "n_ballistic_only": 78,
-  "sum_drones": 1409,
+  "sum_drones": 1416,
   "date_range": [
     "2026-01-02",
     "2026-09-02"
   ],
-  "generated_at_kyiv": "2026-09-02T19:27:55.890347+03:00",
-  "source": "Unique hostile UAV from @kievreal1 posts inside official KMDA windows. Empty drones = unknown, not 0. Ballistic-only = 0.",
+  "generated_at_kyiv": "2026-09-02T20:43:03+03:00",
+  "source": "Unique hostile UAV (шахед/БпЛА/герань/гербер/реактивні) from @kievreal1 posts whose datetime_kyiv is inside official KMDA XML closed windows. Windows matched to alerts.csv via date, hour_start, hour_end, hours (1 decimal). Ballistic/missile-only window = 0 drones. No UAV evidence = unknown (empty), not 0. Dedup near-identical posts within 120s. Estimator: estimate_oblast_drones.py as-is.",
   "clocks": "KMDA XML (naive Europe/Kyiv, state=1 start, state=0 all-clear) ∩ alerts.csv",
-  "sources": {
-    "kievreal1": {
-      "channel": "@kievreal1",
-      "scope": "Kyiv city (local)",
-      "sum_drones": 1409,
-      "n_known": 378,
-      "n_unknown": 95
-    },
-    "war_monitor": {
-      "channel": "@war_monitor",
-      "scope": "national/federal (misses Kyiv more often)",
-      "sum_drones": 1305,
-      "n_known": 241,
-      "n_unknown": 231
-    },
-    "vanek_nikolaev": {
-      "channel": "@vanek_nikolaev",
-      "scope": "national/federal (misses Kyiv more often)",
-      "sum_drones": 828,
-      "n_known": 111,
-      "n_unknown": 361
-    }
+  "posts": {
+    "path": "/workspace/refresh-sep2-2038/kievreal1-posts.json",
+    "n": 14847,
+    "range_kyiv": [
+      "2025-12-30T02:26:39+02:00",
+      "2026-09-02T20:22:54+03:00"
+    ],
+    "scraped_at_kyiv": "2026-09-02T20:43:03.090605+03:00"
   },
-  "note": "Restored 55 wiped war_monitor overlay values from 467-row overlay; filled 3 new 2026-09-02 windows from incremental scrape. kievreal1 drones/confidence unchanged vs 12:28 refresh."
+  "xml": {
+    "n_events": 4811,
+    "n_closed_all": 2379,
+    "n_closed_2026_xml": 474,
+    "extra_start": 47,
+    "orphan_end": 6,
+    "open_start": null,
+    "xml_last_event": "2026-09-02T19:41:28+03:00",
+    "xml_last_event_naive": "2026-09-02 19:41:28"
+  },
+  "xml_extra_skipped": [],
+  "alerts_csv_rows": 474
 }
