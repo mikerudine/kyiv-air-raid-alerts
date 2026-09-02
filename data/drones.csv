@@ -464,3 +464,5 @@ date,hour_start,hour_end,hours,drones,confidence
 2026-09-01,19,20,0.8,2,high
 2026-09-01,20,21,1.0,5,high
 2026-09-02,3,3,0.1,1,med
+2026-09-02,5,5,0.2,,low
+2026-09-02,6,6,0.3,2,high
