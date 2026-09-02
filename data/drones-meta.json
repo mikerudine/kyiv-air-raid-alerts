@@ -1,7 +1,7 @@
 {
-  "n_windows": 470,
+  "n_windows": 472,
   "n_known": 375,
-  "n_unknown": 95,
+  "n_unknown": 97,
   "n_zero": 79,
   "n_ballistic_only": 78,
   "sum_drones": 1404,
@@ -9,7 +9,7 @@
     "2026-01-02",
     "2026-09-02"
   ],
-  "generated_at_kyiv": "2026-09-02T14:07:08+03:00",
+  "generated_at_kyiv": "2026-09-02T15:37:26.345374+03:00",
   "source": "Unique hostile UAV from @kievreal1 posts inside official KMDA windows. Empty drones = unknown, not 0. Ballistic-only = 0.",
   "clocks": "KMDA XML (naive Europe/Kyiv, state=1 start, state=0 all-clear) ∩ alerts.csv",
   "sources": {
@@ -18,21 +18,21 @@
       "scope": "Kyiv city (local)",
       "sum_drones": 1404,
       "n_known": 375,
-      "n_unknown": 95
+      "n_unknown": 97
     },
     "war_monitor": {
       "channel": "@war_monitor",
       "scope": "national/federal (misses Kyiv more often)",
       "sum_drones": 1305,
       "n_known": 241,
-      "n_unknown": 229
+      "n_unknown": 231
     },
     "vanek_nikolaev": {
       "channel": "@vanek_nikolaev",
       "scope": "national/federal (misses Kyiv more often)",
       "sum_drones": 828,
       "n_known": 111,
-      "n_unknown": 359
+      "n_unknown": 361
     }
   },
   "note": "Restored 55 wiped war_monitor overlay values from 467-row overlay; filled 3 new 2026-09-02 windows from incremental scrape. kievreal1 drones/confidence unchanged vs 12:28 refresh."

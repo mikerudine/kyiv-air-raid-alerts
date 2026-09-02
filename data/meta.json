@@ -1,8 +1,8 @@
 {
-  "last_event": "2026-09-02 13:33:08",
-  "n_closed_2026": 471,
-  "sum_hours_2026": 407.3,
-  "generated_at_kyiv": "2026-09-02 14:02:26",
+  "last_event": "2026-09-02 15:22:27",
+  "n_closed_2026": 472,
+  "sum_hours_2026": 407.4,
+  "generated_at_kyiv": "2026-09-02 15:37:26",
   "source_url": "https://data.kyivcity.gov.ua/dataset/statystyka-povitrianykh-tryvoh-u-misti-kyievi-dep-municipal/resource/cbf3758e-031c-42b0-a477-e731cd79b261/data/download",
-  "alert_open": false
+  "alert_open": true
 }
