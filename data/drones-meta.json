@@ -1,24 +1,24 @@
 {
-  "n_windows": 472,
-  "n_known": 375,
-  "n_unknown": 97,
+  "n_windows": 473,
+  "n_known": 378,
+  "n_unknown": 95,
   "n_zero": 79,
   "n_ballistic_only": 78,
-  "sum_drones": 1404,
+  "sum_drones": 1409,
   "date_range": [
     "2026-01-02",
     "2026-09-02"
   ],
-  "generated_at_kyiv": "2026-09-02T15:37:26.345374+03:00",
+  "generated_at_kyiv": "2026-09-02T19:27:55.890347+03:00",
   "source": "Unique hostile UAV from @kievreal1 posts inside official KMDA windows. Empty drones = unknown, not 0. Ballistic-only = 0.",
   "clocks": "KMDA XML (naive Europe/Kyiv, state=1 start, state=0 all-clear) ∩ alerts.csv",
   "sources": {
     "kievreal1": {
       "channel": "@kievreal1",
       "scope": "Kyiv city (local)",
-      "sum_drones": 1404,
-      "n_known": 375,
-      "n_unknown": 97
+      "sum_drones": 1409,
+      "n_known": 378,
+      "n_unknown": 95
     },
     "war_monitor": {
       "channel": "@war_monitor",
