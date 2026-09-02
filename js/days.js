@@ -159,9 +159,35 @@
     });
   }
 
+  function fillDronesCompareTable(series) {
+    const tbody = document.querySelector("#drones-compare-table tbody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    const dronesByDate = dailyDronesMap();
+    series.forEach((row) => {
+      const stats = dronesByDate[row.date];
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" +
+        K.formatDayLabel(row.date) +
+        "</td>" +
+        '<td class="num">' +
+        K.formatDailyDroneSourceCell(stats, "kievreal1") +
+        "</td>" +
+        '<td class="num">' +
+        K.formatDailyDroneSourceCell(stats, "war_monitor") +
+        "</td>" +
+        '<td class="num">' +
+        K.formatDailyDroneSourceCell(stats, "vanek_nikolaev") +
+        "</td>";
+      tbody.appendChild(tr);
+    });
+  }
+
   function fillTable(series) {
     const tbody = document.querySelector("#days-table tbody");
     tbody.innerHTML = "";
+    const dronesByDate = dailyDronesMap();
     series
       .slice()
       .reverse()
@@ -188,6 +214,12 @@
           "</td>" +
           '<td class="num">' +
           row.drones_cell +
+          "</td>" +
+          '<td class="num">' +
+          K.formatDailyDroneSourceCell(dronesByDate[row.date], "war_monitor") +
+          "</td>" +
+          '<td class="num">' +
+          K.formatDailyDroneSourceCell(dronesByDate[row.date], "vanek_nikolaev") +
           "</td>" +
           (row.incomplete ? '<td class="incomplete-tag">неповний день</td>' : "<td></td>");
         tbody.appendChild(tr);
@@ -227,6 +259,7 @@
     updateKPIs(kpi, rangeDroneSum(start, end));
     updateRangeCaption(start, end);
     fillTable(series);
+    fillDronesCompareTable(series);
 
     destroyCharts();
     makeChart(

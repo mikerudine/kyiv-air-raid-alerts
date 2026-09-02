@@ -167,7 +167,7 @@
     return lastEvent ? lastEvent.slice(0, 10) : null;
   }
 
-  const CACHE_BUST = "632676f8";
+  const CACHE_BUST = "6b547439";
 
   const OFFICIAL_RAIONS = [
     "Голосіївський",
@@ -340,38 +340,81 @@
     return row.date + "|" + row.hour_start + "|" + row.hour_end + "|" + row.hours;
   }
 
+  function parseDroneCount(raw) {
+    return raw === "" || raw == null ? null : parseInt(raw, 10);
+  }
+
   function buildDroneMap(droneRows) {
     const map = new Map();
     droneRows.forEach((row) => {
-      const raw = row.drones;
       map.set(droneWindowKey(row), {
-        drones: raw === "" || raw == null ? null : parseInt(raw, 10),
+        drones: parseDroneCount(row.drones),
         confidence: row.confidence || "",
+        drones_war_monitor: parseDroneCount(row.drones_war_monitor),
+        drones_vanek_nikolaev: parseDroneCount(row.drones_vanek_nikolaev),
       });
     });
     return map;
   }
 
+  function lookupDroneEntry(droneMap, alert) {
+    return droneMap.get(alertWindowKey(alert)) || null;
+  }
+
   function lookupDrone(droneMap, alert) {
-    const entry = droneMap.get(alertWindowKey(alert));
+    const entry = lookupDroneEntry(droneMap, alert);
     if (!entry) return null;
     return entry.drones;
+  }
+
+  function emptyDailyDroneBucket() {
+    return {
+      sum: 0,
+      sum_war_monitor: 0,
+      sum_vanek_nikolaev: 0,
+      n_known: 0,
+      n_known_war_monitor: 0,
+      n_known_vanek_nikolaev: 0,
+      n_unknown: 0,
+      n_unknown_war_monitor: 0,
+      n_unknown_vanek_nikolaev: 0,
+      n_windows: 0,
+    };
+  }
+
+  function accumulateDroneSource(bucket, entry, field, sumKey, knownKey, unknownKey) {
+    const value = entry ? entry[field] : null;
+    if (value === null) bucket[unknownKey] += 1;
+    else {
+      bucket[knownKey] += 1;
+      bucket[sumKey] += value;
+    }
   }
 
   function computeDailyDronesFromAlerts(alerts, droneMap) {
     const byDate = {};
     alerts.forEach((a) => {
-      if (!byDate[a.date]) {
-        byDate[a.date] = { sum: 0, n_known: 0, n_unknown: 0, n_windows: 0 };
-      }
+      if (!byDate[a.date]) byDate[a.date] = emptyDailyDroneBucket();
       const bucket = byDate[a.date];
       bucket.n_windows += 1;
-      const drones = lookupDrone(droneMap, a);
-      if (drones === null) bucket.n_unknown += 1;
-      else {
-        bucket.n_known += 1;
-        bucket.sum += drones;
-      }
+      const entry = lookupDroneEntry(droneMap, a);
+      accumulateDroneSource(bucket, entry, "drones", "sum", "n_known", "n_unknown");
+      accumulateDroneSource(
+        bucket,
+        entry,
+        "drones_war_monitor",
+        "sum_war_monitor",
+        "n_known_war_monitor",
+        "n_unknown_war_monitor"
+      );
+      accumulateDroneSource(
+        bucket,
+        entry,
+        "drones_vanek_nikolaev",
+        "sum_vanek_nikolaev",
+        "n_known_vanek_nikolaev",
+        "n_unknown_vanek_nikolaev"
+      );
     });
     return byDate;
   }
@@ -381,6 +424,40 @@
     return String(dayStats.sum);
   }
 
+  function formatDailyDroneSourceCell(dayStats, source) {
+    if (!dayStats || dayStats.n_windows === 0) return "—";
+    if (source === "kievreal1") return formatDailyDronesCell(dayStats);
+    if (source === "war_monitor") {
+      if (dayStats.n_known_war_monitor === 0) return "—";
+      return String(dayStats.sum_war_monitor);
+    }
+    if (source === "vanek_nikolaev") {
+      if (dayStats.n_known_vanek_nikolaev === 0) return "—";
+      return String(dayStats.sum_vanek_nikolaev);
+    }
+    return "—";
+  }
+
+  function emptyWeeklyDroneBucket(iso_year, iso_week) {
+    const bounds = isoWeekBounds(iso_year, iso_week);
+    return {
+      iso_year,
+      iso_week,
+      week_start: bounds.week_start,
+      week_end: bounds.week_end,
+      drones: 0,
+      drones_war_monitor: 0,
+      drones_vanek_nikolaev: 0,
+      n_known: 0,
+      n_known_war_monitor: 0,
+      n_known_vanek_nikolaev: 0,
+      n_unknown: 0,
+      n_unknown_war_monitor: 0,
+      n_unknown_vanek_nikolaev: 0,
+      n_windows: 0,
+    };
+  }
+
   function computeWeeklyDronesFromAlerts(alerts, droneMap) {
     const byWeek = {};
 
@@ -388,27 +465,27 @@
       const { start } = alertStartEnd(a);
       const { iso_year, iso_week } = isoWeekParts(start);
       const weekKey = iso_year + "-" + iso_week;
-      if (!byWeek[weekKey]) {
-        const bounds = isoWeekBounds(iso_year, iso_week);
-        byWeek[weekKey] = {
-          iso_year,
-          iso_week,
-          week_start: bounds.week_start,
-          week_end: bounds.week_end,
-          drones: 0,
-          n_known: 0,
-          n_unknown: 0,
-          n_windows: 0,
-        };
-      }
+      if (!byWeek[weekKey]) byWeek[weekKey] = emptyWeeklyDroneBucket(iso_year, iso_week);
       const bucket = byWeek[weekKey];
       bucket.n_windows += 1;
-      const drones = lookupDrone(droneMap, a);
-      if (drones === null) bucket.n_unknown += 1;
-      else {
-        bucket.n_known += 1;
-        bucket.drones += drones;
-      }
+      const entry = lookupDroneEntry(droneMap, a);
+      accumulateDroneSource(bucket, entry, "drones", "drones", "n_known", "n_unknown");
+      accumulateDroneSource(
+        bucket,
+        entry,
+        "drones_war_monitor",
+        "drones_war_monitor",
+        "n_known_war_monitor",
+        "n_unknown_war_monitor"
+      );
+      accumulateDroneSource(
+        bucket,
+        entry,
+        "drones_vanek_nikolaev",
+        "drones_vanek_nikolaev",
+        "n_known_vanek_nikolaev",
+        "n_unknown_vanek_nikolaev"
+      );
     });
 
     return Object.keys(byWeek)
@@ -416,11 +493,38 @@
       .map((k) => byWeek[k]);
   }
 
+  function formatWeeklyDroneSourceCell(weekStats, source) {
+    if (!weekStats || weekStats.n_windows === 0) return "—";
+    if (source === "kievreal1") {
+      if (weekStats.n_known === 0) return "—";
+      return String(weekStats.drones);
+    }
+    if (source === "war_monitor") {
+      if (weekStats.n_known_war_monitor === 0) return "—";
+      return String(weekStats.drones_war_monitor);
+    }
+    if (source === "vanek_nikolaev") {
+      if (weekStats.n_known_vanek_nikolaev === 0) return "—";
+      return String(weekStats.drones_vanek_nikolaev);
+    }
+    return "—";
+  }
+
   function sumKnownDronesFromAlerts(alerts, droneMap) {
     let sum = 0;
     alerts.forEach((a) => {
       const drones = lookupDrone(droneMap, a);
       if (drones !== null) sum += drones;
+    });
+    return sum;
+  }
+
+  function sumKnownDroneSourceFromAlerts(alerts, droneMap, field) {
+    let sum = 0;
+    alerts.forEach((a) => {
+      const entry = lookupDroneEntry(droneMap, a);
+      const value = entry ? entry[field] : null;
+      if (value !== null) sum += value;
     });
     return sum;
   }
@@ -583,11 +687,15 @@
   global.KyivAlerts.filterAlertsByRaion = filterAlertsByRaion;
   global.KyivAlerts.droneWindowKey = droneWindowKey;
   global.KyivAlerts.buildDroneMap = buildDroneMap;
+  global.KyivAlerts.lookupDroneEntry = lookupDroneEntry;
   global.KyivAlerts.lookupDrone = lookupDrone;
   global.KyivAlerts.computeDailyDronesFromAlerts = computeDailyDronesFromAlerts;
   global.KyivAlerts.formatDailyDronesCell = formatDailyDronesCell;
+  global.KyivAlerts.formatDailyDroneSourceCell = formatDailyDroneSourceCell;
   global.KyivAlerts.computeWeeklyDronesFromAlerts = computeWeeklyDronesFromAlerts;
+  global.KyivAlerts.formatWeeklyDroneSourceCell = formatWeeklyDroneSourceCell;
   global.KyivAlerts.sumKnownDronesFromAlerts = sumKnownDronesFromAlerts;
+  global.KyivAlerts.sumKnownDroneSourceFromAlerts = sumKnownDroneSourceFromAlerts;
   global.KyivAlerts.computeDailyFromAlerts = computeDailyFromAlerts;
   global.KyivAlerts.computeWeeklyFromAlerts = computeWeeklyFromAlerts;
   global.KyivAlerts.syncQueryParams = syncQueryParams;
