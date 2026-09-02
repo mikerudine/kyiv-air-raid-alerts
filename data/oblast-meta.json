@@ -1,1 +1,46 @@
-{"last_event":"2026-09-02 06:54:14","n_windows":775,"n_hours":1356.8,"n_mention_rows":4863,"n_windows_with_raion":449,"n_unspecified":326,"alert_open":true,"scraped_at_kyiv":"2026-09-02T07:39:45.490949+03:00","sources":{"kievreal1":702,"alerts_api":73},"last_post_id":128538,"last_post_kyiv":"2026-09-02T07:38:49+03:00","n_posts":14534,"open_window":{"start":"2026-09-02T06:54:14+03:00","start_id":128519,"start_text":"🚨 КИЇВСЬКА ОБЛАСТЬ - ОГОЛОШЕНА ПОВІТРЯНА ТРИВОГА Загроза реактивних БпЛА","source":"kievreal1"},"scrape":{"n_new_posts":29,"pages":2,"stop_reason":"overlap_128502","blocked":false,"new_id_range":[128503,128538]},"timezone":"Europe/Kyiv","parser":"parse_oblast_alerts.is_oblast_start/is_oblast_end","raions":["Білоцерківський","Бориспільський","Броварський","Бучанський","Вишгородський","Обухівський","Фастівський"]}
+{
+  "last_event": "2026-09-02 11:54:54",
+  "n_windows": 778,
+  "n_hours": 1360.5,
+  "n_mention_rows": 4918,
+  "n_windows_with_raion": 452,
+  "n_unspecified": 326,
+  "alert_open": true,
+  "scraped_at_kyiv": "2026-09-02T12:47:12.003373+03:00",
+  "sources": {
+    "kievreal1": 705,
+    "alerts_api": 73
+  },
+  "last_post_id": 128690,
+  "last_post_kyiv": "2026-09-02T12:46:29+03:00",
+  "n_posts": 14672,
+  "open_window": {
+    "start": "2026-09-02T11:54:54+03:00",
+    "start_id": 128654,
+    "start_text": "🚨 КИЇВСЬКА ОБЛАСТЬ - ОГОЛОШЕНА ПОВІТРЯНА ТРИВОГА 2 бпла на Десну",
+    "source": "kievreal1"
+  },
+  "scrape": {
+    "n_new_posts": 129,
+    "pages": 7,
+    "stop_reason": "overlap_128550",
+    "blocked": false,
+    "overlapped_128340": true,
+    "new_id_range": [
+      128551,
+      128690
+    ],
+    "issues": []
+  },
+  "timezone": "Europe/Kyiv",
+  "parser": "parse_oblast_alerts.is_oblast_start/is_oblast_end",
+  "raions": [
+    "Білоцерківський",
+    "Бориспільський",
+    "Броварський",
+    "Бучанський",
+    "Вишгородський",
+    "Обухівський",
+    "Фастівський"
+  ]
+}
