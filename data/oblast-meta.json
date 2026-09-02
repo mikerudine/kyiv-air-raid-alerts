@@ -1,9 +1,9 @@
 {
-  "last_event": "2026-09-02 11:54:54",
-  "n_windows": 778,
-  "n_hours": 1360.5,
-  "n_mention_rows": 4918,
-  "n_windows_with_raion": 452,
+  "last_event": "2026-09-02 14:43:24",
+  "n_windows": 779,
+  "n_hours": 1362.2,
+  "n_mention_rows": 4927,
+  "n_windows_with_raion": 453,
   "n_unspecified": 326,
   "alert_open": true,
   "scraped_at_kyiv": "2026-09-02T12:47:12.003373+03:00",
@@ -11,13 +11,13 @@
     "kievreal1": 705,
     "alerts_api": 73
   },
-  "last_post_id": 128690,
+  "last_post_id": 128795,
   "last_post_kyiv": "2026-09-02T12:46:29+03:00",
   "n_posts": 14672,
   "open_window": {
-    "start": "2026-09-02T11:54:54+03:00",
-    "start_id": 128654,
-    "start_text": "🚨 КИЇВСЬКА ОБЛАСТЬ - ОГОЛОШЕНА ПОВІТРЯНА ТРИВОГА 2 бпла на Десну",
+    "start": "2026-09-02T14:43:24+03:00",
+    "start_id": 128725,
+    "start_text": "🚨 КИЇВСЬКА ОБЛАСТЬ - ОГОЛОШЕНА ПОВІТРЯНА ТРИВОГА БпЛА в районі Славутича",
     "source": "kievreal1"
   },
   "scrape": {
