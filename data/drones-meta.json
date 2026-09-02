@@ -1,9 +1,9 @@
 {
   "n_windows": 470,
-  "n_knowns":375,
-  "n_unknowns":95,
-  "n_zeros":79,
-  "n_ballistic_onlys":78,
+  "n_known": 375,
+  "n_unknown": 95,
+  "n_zero": 79,
+  "n_ballistic_only": 78,
   "sum_drones": 1404,
   "date_range": [
     "2026-01-02",
@@ -17,22 +17,22 @@
       "channel": "@kievreal1",
       "scope": "Kyiv city (local)",
       "sum_drones": 1404,
-      "n_knowns":375,
-      "n_unknowns":95
+      "n_known": 375,
+      "n_unknown": 95
     },
     "war_monitor": {
       "channel": "@war_monitor",
       "scope": "national/federal (misses Kyiv more often)",
       "sum_drones": 1305,
-      "n_knowns":241,
-      "n_unknowns":229
+      "n_known": 241,
+      "n_unknown": 229
     },
     "vanek_nikolaev": {
       "channel": "@vanek_nikolaev",
       "scope": "national/federal (misses Kyiv more often)",
       "sum_drones": 828,
-      "n_knowns":111,
-      "n_unknowns":359
+      "n_known": 111,
+      "n_unknown": 359
     }
   },
   "note": "Restored 55 wiped war_monitor overlay values from 467-row overlay; filled 3 new 2026-09-02 windows from incremental scrape. kievreal1 drones/confidence unchanged vs 12:28 refresh."
