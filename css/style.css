@@ -229,6 +229,21 @@ h1 {
   grid-column: 1 / -1;
 }
 
+.chart-card-gantt .gantt-chart-wrap {
+  position: relative;
+  height: 220px;
+}
+
+.gantt-range-caption {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.chart-card-gantt .chart-source {
+  margin-top: 0.5rem;
+}
+
 .drones-compare-row {
   display: flex;
   flex-direction: column;

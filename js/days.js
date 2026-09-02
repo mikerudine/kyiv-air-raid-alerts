@@ -320,7 +320,7 @@
 
   function updateSourceFooters() {
     const text = "Джерело: Київ Цифровий • до " + meta.last_event;
-    document.querySelectorAll(".chart-source:not(.chart-source-drones)").forEach((el) => {
+    document.querySelectorAll(".chart-source:not(.chart-source-drones):not(.chart-source-gantt):not(.chart-source-drones-region)").forEach((el) => {
       el.textContent = text;
     });
   }
@@ -329,6 +329,210 @@
     const el = document.getElementById("range-caption");
     el.textContent =
       "Період: " + K.formatDayLabelLong(start) + " — " + K.formatDayLabelLong(end);
+  }
+
+  const GANTT_MONTHS_UK = [
+    "січня",
+    "лютого",
+    "березня",
+    "квітня",
+    "травня",
+    "червня",
+    "липня",
+    "серпня",
+    "вересня",
+    "жовтня",
+    "листопада",
+    "грудня",
+  ];
+
+  function ganttSevenDayRange() {
+    const end = dataMax;
+    const start = K.addDays(end, -6);
+    return {
+      start,
+      end,
+      dates: K.dateRangeInclusive(start, end),
+    };
+  }
+
+  function ganttRangeSubtitle(start, end) {
+    const s = K.parseDate(start);
+    const e = K.parseDate(end);
+    const y = s.getFullYear();
+    if (s.getMonth() === e.getMonth()) {
+      return s.getDate() + "–" + e.getDate() + " " + GANTT_MONTHS_UK[s.getMonth()] + " " + y;
+    }
+    return (
+      s.getDate() +
+      " " +
+      GANTT_MONTHS_UK[s.getMonth()] +
+      " – " +
+      e.getDate() +
+      " " +
+      GANTT_MONTHS_UK[e.getMonth()] +
+      " " +
+      y
+    );
+  }
+
+  function alertClockBounds(alert) {
+    if (alert.window_start && alert.window_end) {
+      return {
+        start: new Date(alert.window_start),
+        end: new Date(alert.window_end),
+      };
+    }
+    return K.alertStartEnd(alert);
+  }
+
+  function splitAlertIntoDayFragments(alert) {
+    const { start, end } = alertClockBounds(alert);
+    const fragments = [];
+    let cursor = new Date(start);
+    while (cursor < end) {
+      const dayStart = new Date(cursor);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+      const segmentEnd = end < dayEnd ? end : dayEnd;
+      const xStart = (cursor - dayStart) / 3600000;
+      const xEnd = (segmentEnd - dayStart) / 3600000;
+      if (xEnd > xStart) {
+        fragments.push({
+          date: K.formatISO(dayStart),
+          x: [Math.round(xStart * 1000) / 1000, Math.round(xEnd * 1000) / 1000],
+        });
+      }
+      cursor = segmentEnd;
+    }
+    return fragments;
+  }
+
+  function buildGanttSegments(dates) {
+    const allowed = new Set(dates);
+    const segments = [];
+    filteredAlerts().forEach((alert) => {
+      splitAlertIntoDayFragments(alert).forEach((frag) => {
+        if (allowed.has(frag.date)) {
+          segments.push({
+            x: frag.x,
+            y: K.formatDayLabel(frag.date),
+          });
+        }
+      });
+    });
+    return segments;
+  }
+
+  function updateGanttCaption(ganttEnd) {
+    const el = document.getElementById("gantt-caption");
+    if (!el) return;
+    const parts = ["нічні вікна розрізаються на дві доби"];
+    if (meta && meta.alert_open) {
+      parts.unshift("відкрите вікно не входить");
+    }
+    if (meta && meta.last_event && ganttEnd === meta.last_event.slice(0, 10)) {
+      const timePart = meta.last_event.slice(11, 16);
+      parts.unshift(K.formatDayLabel(ganttEnd) + " до ~" + timePart);
+    }
+    el.textContent = parts.join(" · ");
+  }
+
+  function makeGanttChart() {
+    const canvas = document.getElementById("chart-gantt");
+    if (!canvas) return;
+
+    const { start, end, dates } = ganttSevenDayRange();
+    const labels = dates.map((d) => K.formatDayLabel(d));
+    const segments = buildGanttSegments(dates);
+
+    const rangeEl = document.getElementById("gantt-range-caption");
+    if (rangeEl) {
+      rangeEl.textContent = ganttRangeSubtitle(start, end);
+    }
+    updateGanttCaption(end);
+
+    if (charts["chart-gantt"]) charts["chart-gantt"].destroy();
+
+    charts["chart-gantt"] = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            data: segments,
+            backgroundColor: "#c45c4a",
+            borderWidth: 0,
+            borderRadius: 0,
+            barThickness: 16,
+          },
+        ],
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        parsing: {
+          xAxisKey: "x",
+          yAxisKey: "y",
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "#2a2a2a",
+            titleColor: "#e8e8e8",
+            bodyColor: "#ccc",
+            borderColor: "#444",
+            borderWidth: 1,
+            callbacks: {
+              label(ctx) {
+                const x = ctx.raw.x;
+                const h0 = Math.floor(x[0]);
+                const m0 = String(Math.round((x[0] - h0) * 60)).padStart(2, "0");
+                const h1 = Math.floor(x[1]);
+                const m1 = String(Math.round((x[1] - h1) * 60)).padStart(2, "0");
+                return (
+                  String(h0).padStart(2, "0") +
+                  ":" +
+                  m0 +
+                  " – " +
+                  String(h1).padStart(2, "0") +
+                  ":" +
+                  m1
+                );
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            min: 0,
+            max: 24,
+            ticks: {
+              stepSize: 2,
+              color: "#aaa",
+              font: { size: 10 },
+              callback(value) {
+                return String(value).padStart(2, "0");
+              },
+            },
+            grid: { color: "rgba(255,255,255,0.06)" },
+            title: {
+              display: true,
+              text: "година (Europe/Kyiv)",
+              color: "#aaa",
+              font: { size: 11 },
+            },
+          },
+          y: {
+            reverse: true,
+            ticks: { color: "#aaa", font: { size: 11 } },
+            grid: { display: false },
+          },
+        },
+      },
+    });
   }
 
   function renderDashboard() {
@@ -389,6 +593,7 @@
       "#e8b84a"
     );
     makeDronesRegionChart(series, labels);
+    makeGanttChart();
   }
 
   function applyPreset(days) {

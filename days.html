@@ -6,10 +6,10 @@
   <title>Тривоги Києва — статистика по днях</title>
   <meta name="description" content="Щоденна статистика повітряних тривог у м. Києві за даними Київ Цифрового / KMDA">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=c9d5a318">
+  <link rel="stylesheet" href="css/style.css?v=d1e6b429">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
-  <script src="js/common.js?v=c9d5a318" defer></script>
-  <script src="js/days.js?v=c9d5a318" defer></script>
+  <script src="js/common.js?v=d1e6b429" defer></script>
+  <script src="js/days.js?v=d1e6b429" defer></script>
   <script data-goatcounter="https://mikerudine.goatcounter.com/count"
           async src="//gc.zgo.at/count.js"></script>
 </head>
@@ -95,6 +95,12 @@
           <h2>кількість тривог по днях</h2>
           <div class="chart-wrap"><canvas id="chart-count"></canvas></div>
           <div class="chart-source"></div>
+        </div>
+        <div class="chart-card chart-card-wide chart-card-gantt">
+          <h2>Діапазони тривог протягом доби, м. Київ</h2>
+          <p id="gantt-range-caption" class="gantt-range-caption"></p>
+          <div class="gantt-chart-wrap"><canvas id="chart-gantt"></canvas></div>
+          <div class="chart-source chart-source-gantt" id="gantt-caption"></div>
         </div>
         <div class="chart-card chart-card-wide">
           <h2>оцінка БпЛА @kievreal1 по днях</h2>
