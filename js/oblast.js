@@ -1243,42 +1243,39 @@
 
   async function init() {
     try {
-      const [cityCsv, cityGeoRes, cityAlertsRes, oblastCsv, oblastGeoRes, oblastAlertsRes, metaRes] =
-        await Promise.all([
-          fetch("data/districts.csv?v=" + CACHE_BUST),
-          fetch("data/kyiv-raions.geojson?v=" + CACHE_BUST),
-          fetch("data/alerts.csv?v=" + CACHE_BUST),
-          fetch("data/oblast-districts.csv?v=" + CACHE_BUST),
-          fetch("data/kyiv-oblast-raions.geojson?v=" + CACHE_BUST),
-          fetch("data/oblast.csv?v=" + CACHE_BUST),
-          fetch("data/oblast-meta.json?v=" + CACHE_BUST),
-        ]);
-
-      const responses = [
-        cityCsv,
+      const [
+        cityRowsData,
         cityGeoRes,
-        cityAlertsRes,
-        oblastCsv,
+        cityAlertsData,
+        oblastRowsData,
         oblastGeoRes,
-        oblastAlertsRes,
-        metaRes,
-      ];
-      if (responses.some((r) => !r.ok)) {
+        oblastAlertsData,
+        oblastMetaData,
+      ] = await Promise.all([
+        K.fetchTable("districts"),
+        fetch("data/kyiv-raions.geojson?v=" + CACHE_BUST),
+        K.fetchTable("alerts"),
+        K.fetchTable("oblast_districts"),
+        fetch("data/kyiv-oblast-raions.geojson?v=" + CACHE_BUST),
+        K.fetchTable("oblast"),
+        K.fetchOblastMeta(),
+      ]);
+
+      const geoResponses = [cityGeoRes, oblastGeoRes];
+      if (geoResponses.some((r) => !r.ok)) {
         throw new Error("Не вдалося завантажити дані");
       }
 
-      const cityCsvText = await cityCsv.text();
-      const oblastCsvText = await oblastCsv.text();
-      if (!cityCsvText.trim()) throw new Error("data/districts.csv порожній");
-      if (!oblastCsvText.trim()) throw new Error("data/oblast-districts.csv порожній");
+      if (!cityRowsData.length) throw new Error("districts порожній");
+      if (!oblastRowsData.length) throw new Error("oblast_districts порожній");
 
-      cityRows = K.parseCSV(cityCsvText);
-      oblastRows = K.parseCSV(oblastCsvText);
+      cityRows = cityRowsData;
+      oblastRows = oblastRowsData;
       cityGeo = await cityGeoRes.json();
       oblastGeo = await oblastGeoRes.json();
-      cityAlerts = filter2026(K.parseCSV(await cityAlertsRes.text()), "date");
-      oblastAlerts = filter2026(K.parseCSV(await oblastAlertsRes.text()), "date");
-      oblastMeta = await metaRes.json();
+      cityAlerts = filter2026(cityAlertsData, "date");
+      oblastAlerts = filter2026(oblastAlertsData, "date");
+      oblastMeta = oblastMetaData;
 
       if (oblastGeo.features.length !== 7) {
         throw new Error("kyiv-oblast-raions.geojson: очікувалось 7 MultiPolygons");

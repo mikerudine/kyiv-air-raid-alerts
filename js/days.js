@@ -334,25 +334,18 @@
 
   async function init() {
     try {
-      const bust = K.CACHE_BUST;
-      const [metaRes, dailyRes, alertsRes, districtsRes, dronesRes] = await Promise.all([
-        fetch("data/meta.json?v=" + bust),
-        fetch("data/daily.csv?v=" + bust),
-        fetch("data/alerts.csv?v=" + bust),
-        fetch("data/districts.csv?v=" + bust),
-        fetch("data/drones.csv?v=" + bust),
+      const [metaData, alertsData, districtRows, droneRows] = await Promise.all([
+        K.fetchCityMeta(),
+        K.fetchTable("alerts"),
+        K.fetchTable("districts"),
+        K.fetchTable("drones"),
       ]);
 
-      if (!metaRes.ok || !dailyRes.ok || !alertsRes.ok || !districtsRes.ok || !dronesRes.ok) {
-        throw new Error("Не вдалося завантажити дані");
-      }
-
-      meta = await metaRes.json();
-      dailyAll = K.parseCSV(await dailyRes.text());
-      alertsAll = K.parseCSV(await alertsRes.text());
-      const districtRows = K.parseCSV(await districtsRes.text());
+      meta = metaData;
+      alertsAll = alertsData;
+      dailyAll = K.computeDailyFromAlerts(alertsAll);
       windowRaionMap = K.buildWindowRaionMap(districtRows);
-      droneMap = K.buildDroneMap(K.parseCSV(await dronesRes.text()));
+      droneMap = K.buildDroneMap(droneRows);
 
       const dates = dailyAll.map((r) => r.date).sort(K.compareDates);
       dataMin = dates[0];
