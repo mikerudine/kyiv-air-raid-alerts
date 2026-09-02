@@ -1,34 +1,29 @@
 {
-  "last_event": "2026-09-02 14:43:24",
-  "n_windows": 779,
-  "n_hours": 1362.2,
-  "n_mention_rows": 4927,
-  "n_windows_with_raion": 453,
+  "last_event": "2026-09-02 19:41:34",
+  "n_windows": 780,
+  "n_hours": 1367.2,
+  "n_mention_rows": 5040,
+  "n_windows_with_raion": 454,
   "n_unspecified": 326,
-  "alert_open": true,
-  "scraped_at_kyiv": "2026-09-02T12:47:12.003373+03:00",
+  "alert_open": false,
+  "scraped_at_kyiv": "2026-09-02T20:43:03.090605+03:00",
   "sources": {
-    "kievreal1": 705,
+    "kievreal1": 707,
     "alerts_api": 73
   },
-  "last_post_id": 128795,
-  "last_post_kyiv": "2026-09-02T12:46:29+03:00",
-  "n_posts": 14672,
-  "open_window": {
-    "start": "2026-09-02T14:43:24+03:00",
-    "start_id": 128725,
-    "start_text": "🚨 КИЇВСЬКА ОБЛАСТЬ - ОГОЛОШЕНА ПОВІТРЯНА ТРИВОГА БпЛА в районі Славутича",
-    "source": "kievreal1"
-  },
+  "last_post_id": 128903,
+  "last_post_kyiv": "2026-09-02T20:22:54+03:00",
+  "n_posts": 14847,
+  "open_window": null,
   "scrape": {
-    "n_new_posts": 129,
-    "pages": 7,
-    "stop_reason": "overlap_128550",
+    "n_new_posts": 95,
+    "pages": 6,
+    "stop_reason": "overlap_128795",
     "blocked": false,
     "overlapped_128340": true,
     "new_id_range": [
-      128551,
-      128690
+      128800,
+      128903
     ],
     "issues": []
   },
