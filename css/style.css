@@ -308,28 +308,6 @@ h1 {
   line-height: 1.25;
 }
 
-@media (min-width: 900px) {
-  .drones-compare-row {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-
-  .drones-compare-row .chart-wrap {
-    flex: 1 1 55%;
-  }
-
-  .drones-compare-table-wrap {
-    flex: 0 1 45%;
-    max-height: 220px;
-    overflow-y: auto;
-  }
-
-  .drones-region-table-wrap {
-    flex: 0 1 48%;
-    max-height: 280px;
-  }
-}
-
 @media (min-width: 768px) {
   .charts-grid.forecast-grid {
     grid-template-columns: 1fr;
