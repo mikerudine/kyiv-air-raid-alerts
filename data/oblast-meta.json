@@ -1,33 +1,20 @@
 {
-  "last_event": "2026-09-02 19:41:34",
-  "n_windows": 780,
-  "n_hours": 1367.2,
-  "n_mention_rows": 5040,
-  "n_windows_with_raion": 454,
+  "last_event": "2026-09-03 23:13:04",
+  "n_windows": 787,
+  "n_hours": 1387.5,
+  "n_mention_rows": 5185,
+  "n_windows_with_raion": 461,
   "n_unspecified": 326,
   "alert_open": false,
-  "scraped_at_kyiv": "2026-09-02T20:43:03.090605+03:00",
+  "scraped_at_kyiv": "2026-09-03T23:39:38+03:00",
   "sources": {
-    "kievreal1": 707,
+    "kievreal1": 714,
     "alerts_api": 73
   },
-  "last_post_id": 128903,
-  "last_post_kyiv": "2026-09-02T20:22:54+03:00",
-  "n_posts": 14847,
+  "last_post_id": 129234,
+  "last_post_kyiv": "2026-09-03T23:13:05+03:00",
+  "n_posts": 15135,
   "open_window": null,
-  "scrape": {
-    "n_new_posts": 95,
-    "pages": 6,
-    "stop_reason": "overlap_128795",
-    "blocked": false,
-    "overlapped_128340": true,
-    "new_id_range": [
-      128800,
-      128903
-    ],
-    "issues": []
-  },
-  "timezone": "Europe/Kyiv",
   "parser": "parse_oblast_alerts.is_oblast_start/is_oblast_end",
   "raions": [
     "Білоцерківський",
@@ -37,5 +24,18 @@
     "Вишгородський",
     "Обухівський",
     "Фастівський"
-  ]
+  ],
+  "scrape": {
+    "pages": 30,
+    "issues": [],
+    "blocked": false,
+    "n_new_posts": 229,
+    "stop_reason": "manual_refresh_after_all_clear",
+    "new_id_range": [
+      129006,
+      129234
+    ],
+    "overlapped_128340": true
+  },
+  "timezone": "Europe/Kyiv"
 }

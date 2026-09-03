@@ -168,8 +168,8 @@ date,hour_start,hour_end,hours,source
 2026-02-19,22,23,0.5,kievreal1
 2026-02-20,0,0,0.5,alerts_api
 2026-02-21,12,13,0.5,kievreal1
-2026-02-21,15,15,0.3,kievreal1
 2026-02-21,15,15,0.0,alerts_api
+2026-02-21,15,15,0.3,kievreal1
 2026-02-21,15,16,0.7,alerts_api
 2026-02-22,3,7,4.3,kievreal1
 2026-02-23,20,20,0.2,kievreal1
@@ -314,8 +314,8 @@ date,hour_start,hour_end,hours,source
 2026-04-20,0,1,0.3,kievreal1
 2026-04-20,2,4,1.8,kievreal1
 2026-04-20,14,16,1.8,kievreal1
-2026-04-21,11,11,0.4,kievreal1
 2026-04-21,11,11,0.1,kievreal1
+2026-04-21,11,11,0.4,kievreal1
 2026-04-22,1,2,0.3,kievreal1
 2026-04-22,4,4,0.3,kievreal1
 2026-04-22,6,7,1.1,kievreal1
@@ -731,8 +731,8 @@ date,hour_start,hour_end,hours,source
 2026-08-24,23,0,1.0,kievreal1
 2026-08-25,11,12,1.2,kievreal1
 2026-08-25,12,13,0.4,kievreal1
-2026-08-25,20,20,0.7,kievreal1
 2026-08-25,20,20,0.3,alerts_api
+2026-08-25,20,20,0.7,kievreal1
 2026-08-25,23,0,0.8,kievreal1
 2026-08-26,10,10,0.7,kievreal1
 2026-08-26,12,13,0.9,kievreal1
@@ -756,8 +756,8 @@ date,hour_start,hour_end,hours,source
 2026-08-29,12,13,0.4,kievreal1
 2026-08-29,15,16,0.7,kievreal1
 2026-08-29,17,19,2.4,kievreal1
-2026-08-29,20,20,0.3,kievreal1
 2026-08-29,20,0,3.9,kievreal1
+2026-08-29,20,20,0.3,kievreal1
 2026-08-30,3,5,2.2,kievreal1
 2026-08-30,5,6,0.0,alerts_api
 2026-08-30,6,6,0.2,kievreal1
@@ -779,3 +779,10 @@ date,hour_start,hour_end,hours,source
 2026-09-02,11,11,0.1,kievreal1
 2026-09-02,11,13,1.7,kievreal1
 2026-09-02,14,19,5.0,kievreal1
+2026-09-02,20,23,2.5,kievreal1
+2026-09-02,23,0,1.0,kievreal1
+2026-09-03,2,3,1.5,kievreal1
+2026-09-03,4,9,5.2,kievreal1
+2026-09-03,10,14,3.6,kievreal1
+2026-09-03,15,16,1.5,kievreal1
+2026-09-03,18,23,5.0,kievreal1

@@ -25,6 +25,9 @@ python3 -m http.server 8765
 
 ## Оновлення даних
 
+Живий дашборд на GitHub Pages читає таблиці з **Supabase REST** (`alerts`, `drones`, `districts`, `oblast`, `oblast_districts`, `city_meta`, `oblast_meta`). Файли в `data/` синхронізуються як дзеркало після refresh.
+
+
 Workflow `.github/workflows/update-data.yml` щодня о 06:00 UTC (09:00 за Києвом) та вручну (`workflow_dispatch`):
 
 1. Завантажує XML
