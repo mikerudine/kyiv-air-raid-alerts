@@ -258,22 +258,15 @@
 
   async function init() {
     try {
-      const bust = K.CACHE_BUST;
-      const [metaRes, dailyRes, alertsRes, districtsRes] = await Promise.all([
-        fetch("data/meta.json?v=" + bust),
-        fetch("data/daily.csv?v=" + bust),
-        fetch("data/alerts.csv?v=" + bust),
-        fetch("data/districts.csv?v=" + bust),
+      const [metaData, alertsData, districtRows] = await Promise.all([
+        K.fetchCityMeta(),
+        K.fetchTable("alerts"),
+        K.fetchTable("districts"),
       ]);
 
-      if (!metaRes.ok || !dailyRes.ok || !alertsRes.ok || !districtsRes.ok) {
-        throw new Error("Не вдалося завантажити дані");
-      }
-
-      meta = await metaRes.json();
-      dailyAll = K.parseCSV(await dailyRes.text());
-      alertsAll = K.parseCSV(await alertsRes.text());
-      const districtRows = K.parseCSV(await districtsRes.text());
+      meta = metaData;
+      alertsAll = alertsData;
+      dailyAll = K.computeDailyFromAlerts(alertsAll);
       windowRaionMap = K.buildWindowRaionMap(districtRows);
 
       document.getElementById("loading").style.display = "none";
