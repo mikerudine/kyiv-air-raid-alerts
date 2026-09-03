@@ -141,6 +141,37 @@
     return values.map((_, i) => (i === values.length - 1 ? lastColor : normalColor));
   }
 
+  function isNarrowViewport() {
+    return typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches;
+  }
+
+  function applyMobileBarXAxis(opts, labelCount) {
+    if (!isNarrowViewport()) return;
+    const ticks = opts.scales.x.ticks;
+    ticks.autoSkip = true;
+    ticks.font = { size: 10 };
+    if (labelCount > 14) {
+      ticks.maxTicksLimit = 7;
+      ticks.maxRotation = 0;
+      ticks.minRotation = 0;
+    } else if (labelCount > 8) {
+      ticks.maxTicksLimit = 8;
+      ticks.maxRotation = 45;
+      ticks.minRotation = 0;
+    }
+  }
+
+  function applyMobileGanttScales(scales, rowCount) {
+    if (!isNarrowViewport()) return;
+    scales.x.ticks.font = { size: 11 };
+    scales.x.ticks.maxRotation = 0;
+    scales.y.ticks.font = { size: 11 };
+    if (rowCount > 5) {
+      scales.y.ticks.autoSkip = true;
+      scales.y.ticks.maxTicksLimit = 7;
+    }
+  }
+
   function valueLabelsPlugin() {
     return {
       id: "valueLabels",
@@ -178,7 +209,7 @@
     return lastEvent ? lastEvent.slice(0, 10) : null;
   }
 
-  const CACHE_BUST = "c4a8f013";
+  const CACHE_BUST = "d9b2e4a1";
 
   const SUPABASE_REST =
     "https://maqdxmetyzpyupivyecz.supabase.co/rest/v1/";
@@ -1094,6 +1125,9 @@
   global.KyivAlerts.percentile = percentile;
   global.KyivAlerts.mean = mean;
   global.KyivAlerts.barColors = barColors;
+  global.KyivAlerts.isNarrowViewport = isNarrowViewport;
+  global.KyivAlerts.applyMobileBarXAxis = applyMobileBarXAxis;
+  global.KyivAlerts.applyMobileGanttScales = applyMobileGanttScales;
   global.KyivAlerts.valueLabelsPlugin = valueLabelsPlugin;
   global.KyivAlerts.isIncompleteDay = isIncompleteDay;
   global.KyivAlerts.lastEventDate = lastEventDate;

@@ -141,6 +141,7 @@
     const opts = JSON.parse(JSON.stringify(K.CHART_DEFAULTS));
     opts.scales.y.title = { display: true, text: yLabel, color: "#aaa", font: { size: 11 } };
     if (yMax) opts.scales.y.max = yMax;
+    K.applyMobileBarXAxis(opts, labels.length);
 
     charts[canvasId] = new Chart(canvas, {
       type: "bar",
@@ -217,6 +218,7 @@
     });
 
     const opts = K.groupedDronesRegionChartOptions();
+    K.applyMobileBarXAxis(opts, labels.length);
 
     charts["chart-drones-region"] = new Chart(canvas, {
       type: "bar",
@@ -488,7 +490,8 @@
             },
           },
         },
-        scales: {
+        scales: (function () {
+          const scales = {
           x: {
             min: 0,
             max: 24,
@@ -513,7 +516,10 @@
             ticks: { color: "#aaa", font: { size: 11 } },
             grid: { display: false },
           },
-        },
+        };
+          K.applyMobileGanttScales(scales, labels.length);
+          return scales;
+        })(),
       },
     });
   }

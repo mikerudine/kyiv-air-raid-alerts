@@ -17,6 +17,7 @@
 
 html {
   font-size: 16px;
+  overflow-x: hidden;
 }
 
 body {
@@ -26,10 +27,14 @@ body {
   color: var(--text);
   line-height: 1.5;
   min-height: 100vh;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 .container {
   max-width: 1200px;
+  width: 100%;
+  min-width: 0;
   margin: 0 auto;
   padding: 1rem 1.25rem 2rem;
 }
@@ -249,6 +254,8 @@ h1 {
   flex-direction: column;
   gap: 0.75rem;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .drones-compare-row .chart-wrap {
@@ -259,6 +266,7 @@ h1 {
 
 .drones-compare-table-wrap {
   width: 100%;
+  max-width: 100%;
   min-width: 0;
   overflow-x: auto;
   overflow-y: visible;
@@ -303,9 +311,16 @@ h1 {
 
 .drones-region-compare-table th,
 .drones-region-compare-table td {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   white-space: nowrap;
   line-height: 1.25;
+}
+
+@media (min-width: 768px) {
+  .drones-region-compare-table th,
+  .drones-region-compare-table td {
+    font-size: 0.68rem;
+  }
 }
 
 @media (min-width: 768px) {
@@ -345,6 +360,20 @@ tbody tr.row-incomplete td:first-child {
   margin-bottom: 1.5rem;
 }
 
+@media (max-width: 599px) {
+  .kpi-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kpi-label {
+    font-size: 0.8rem;
+  }
+
+  .kpi-value {
+    font-size: 1.25rem;
+  }
+}
+
 .kpi {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -370,6 +399,7 @@ tbody tr.row-incomplete td:first-child {
   grid-template-columns: 1fr;
   gap: 1.25rem;
   margin-bottom: 1.5rem;
+  min-width: 0;
 }
 
 @media (min-width: 768px) {
@@ -384,6 +414,8 @@ tbody tr.row-incomplete td:first-child {
   border-radius: 8px;
   padding: 1rem 0.75rem 0.5rem;
   position: relative;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .chart-card h2 {
