@@ -10,6 +10,7 @@
   let alertsAll = [];
   let windowRaionMap = null;
   let droneMap = null;
+  let droneCompareWeeklyMap = null;
   let raionFilter = "all";
 
   function formatWeekLabel(weekStart) {
@@ -54,6 +55,99 @@
     makeChart("chart-median", "години", "median_hours", "#4a9b8e", "#e8913a", 1.4);
     makeChart("chart-count", "тривоги", "n_alerts", "#9b8ec4", "#d4a017", 60);
     makeDronesChart();
+    makeDronesRegionChart();
+  }
+
+  function weeklyDroneCityValue(weekStats) {
+    if (!weekStats || weekStats.n_known === 0) return null;
+    return weekStats.drones;
+  }
+
+  function fillDronesRegionCompareTable() {
+    const tbody = document.querySelector("#drones-region-compare-table tbody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    const weeklyDrones = window.__weeklyDrones2026 || [];
+    weeklyDrones.forEach((w) => {
+      const compare = K.lookupDroneCompareWeekly(
+        droneCompareWeeklyMap,
+        w.iso_year,
+        w.iso_week
+      );
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" +
+        formatWeekLabel(w.week_start) +
+        "</td>" +
+        '<td class="num">' +
+        K.formatWeeklyDroneSourceCell(w, "kievreal1") +
+        "</td>" +
+        '<td class="num">' +
+        K.formatWeeklyDroneSourceCell(w, "war_monitor") +
+        "</td>" +
+        '<td class="num">' +
+        K.formatWeeklyDroneSourceCell(w, "vanek_nikolaev") +
+        "</td>" +
+        '<td class="num">' +
+        K.formatRegionCompareOblastCell(compare) +
+        "</td>" +
+        '<td class="num">' +
+        K.formatRegionCompareNationwideCell(compare, "war_monitor") +
+        "</td>" +
+        '<td class="num">' +
+        K.formatRegionCompareNationwideCell(compare, "vanek_nikolaev") +
+        "</td>" +
+        '<td class="num">' +
+        K.formatRegionCompareNationwideCell(compare, "genstab") +
+        "</td>";
+      tbody.appendChild(tr);
+    });
+  }
+
+  function makeDronesRegionChart() {
+    const canvas = document.getElementById("chart-drones-region");
+    if (!canvas) return;
+
+    const weeklyDrones = window.__weeklyDrones2026 || [];
+    const labels = weeklyDrones.map((w) => formatWeekLabel(w.week_start));
+    const cityValues = weeklyDrones.map((w) => K.chartDroneValue(weeklyDroneCityValue(w)));
+    const oblastValues = weeklyDrones.map((w) => {
+      const compare = K.lookupDroneCompareWeekly(
+        droneCompareWeeklyMap,
+        w.iso_year,
+        w.iso_week
+      );
+      return K.chartDroneValue(compare ? compare.oblast_drones : null);
+    });
+
+    const opts = K.groupedDronesRegionChartOptions();
+
+    if (charts["chart-drones-region"]) charts["chart-drones-region"].destroy();
+
+    charts["chart-drones-region"] = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "м. Київ",
+            data: cityValues,
+            backgroundColor: "#d47a4a",
+            borderWidth: 0,
+            borderRadius: 2,
+          },
+          {
+            label: "Київська область",
+            data: oblastValues,
+            backgroundColor: "#5b9bd5",
+            borderWidth: 0,
+            borderRadius: 2,
+          },
+        ],
+      },
+      options: opts,
+      plugins: [K.valueLabelsPlugin()],
+    });
   }
 
   function fillDronesCompareTable() {
@@ -195,7 +289,7 @@
   function updateSourceFooters() {
     const text =
       "Джерело: Київ Цифровий • до " + meta.last_event.replace(" ", " ") + " ";
-    document.querySelectorAll(".chart-source:not(.chart-source-drones)").forEach((el) => {
+    document.querySelectorAll(".chart-source:not(.chart-source-drones):not(.chart-source-drones-region)").forEach((el) => {
       el.textContent = text;
     });
   }
@@ -205,22 +299,33 @@
     updateKPIs();
     fillRecentTable();
     fillDronesCompareTable();
+    fillDronesRegionCompareTable();
     refreshCharts();
   }
 
   async function init() {
     try {
-      const [metaData, alertsData, districtRows, droneRows] = await Promise.all([
-        K.fetchCityMeta(),
-        K.fetchTable("alerts"),
-        K.fetchTable("districts"),
-        K.fetchTable("drones"),
-      ]);
+      const bust = K.CACHE_BUST;
+      const [metaData, alertsData, districtRows, droneRows, compareWeeklyRes] =
+        await Promise.all([
+          K.fetchCityMeta(),
+          K.fetchTable("alerts"),
+          K.fetchTable("districts"),
+          K.fetchTable("drones"),
+          fetch("data/drones-compare-weekly.csv?v=" + bust),
+        ]);
 
       meta = metaData;
       alertsAll = alertsData;
       windowRaionMap = K.buildWindowRaionMap(districtRows);
       droneMap = K.buildDroneMap(droneRows);
+      if (compareWeeklyRes.ok) {
+        droneCompareWeeklyMap = K.buildDroneCompareWeeklyMap(
+          K.parseCSV(await compareWeeklyRes.text())
+        );
+      } else {
+        droneCompareWeeklyMap = new Map();
+      }
 
       weeklyAll = K.computeWeeklyFromAlerts(
         alertsAll.filter((a) => a.date.startsWith(String(YEAR)))

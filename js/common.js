@@ -167,7 +167,7 @@
     return lastEvent ? lastEvent.slice(0, 10) : null;
   }
 
-  const CACHE_BUST = "e8f41a92";
+  const CACHE_BUST = "f3a8c712";
 
   const SUPABASE_REST =
     "https://maqdxmetyzpyupivyecz.supabase.co/rest/v1/";
@@ -782,6 +782,100 @@
     return sum;
   }
 
+  function oblastWindowKey(row) {
+    return row.date + "|" + row.hour_start + "|" + row.hour_end + "|" + row.hours;
+  }
+
+  function oblastAlertStartEnd(row) {
+    const start = parseDate(row.date);
+    start.setHours(parseInt(row.hour_start, 10), 0, 0, 0);
+    const hours = parseFloat(row.hours) || 0;
+    const end = new Date(start.getTime() + hours * 3600000);
+    return { start, end };
+  }
+
+  function formatDroneCountCell(value) {
+    return value === null || value === undefined ? "—" : String(value);
+  }
+
+  function buildDroneCompareDailyMap(rows) {
+    const map = new Map();
+    rows.forEach((row) => {
+      map.set(row.date, {
+        oblast_drones: parseDroneCount(row.oblast_drones),
+        nationwide_war_monitor: parseDroneCount(row.nationwide_drones_war_monitor),
+        nationwide_vanek_nikolaev: parseDroneCount(row.nationwide_drones_vanek_nikolaev),
+        genstab_launched: parseDroneCount(row.genstab_launched),
+      });
+    });
+    return map;
+  }
+
+  function buildDroneCompareWeeklyMap(rows) {
+    const map = new Map();
+    rows.forEach((row) => {
+      const isoYear = parseInt(row.iso_year, 10);
+      const isoWeek = parseInt(row.iso_week, 10);
+      map.set(isoYear + "-" + isoWeek, {
+        iso_year: isoYear,
+        iso_week: isoWeek,
+        week_start: row.week_start || "",
+        oblast_drones: parseDroneCount(row.oblast_drones),
+        nationwide_war_monitor: parseDroneCount(row.nationwide_drones_war_monitor),
+        nationwide_vanek_nikolaev: parseDroneCount(row.nationwide_drones_vanek_nikolaev),
+        genstab_launched: parseDroneCount(row.genstab_launched),
+      });
+    });
+    return map;
+  }
+
+  async function fetchOptionalCSV(url) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return [];
+      return parseCSV(await res.text());
+    } catch (_err) {
+      return [];
+    }
+  }
+
+  function lookupDroneCompareDaily(compareMap, date) {
+    return compareMap.get(date) || null;
+  }
+
+  function lookupDroneCompareWeekly(compareMap, isoYear, isoWeek) {
+    return compareMap.get(isoYear + "-" + isoWeek) || null;
+  }
+
+  function formatRegionCompareOblastCell(compareEntry) {
+    if (!compareEntry) return "—";
+    return formatDroneCountCell(compareEntry.oblast_drones);
+  }
+
+  function formatRegionCompareNationwideCell(compareEntry, source) {
+    if (!compareEntry) return "—";
+    if (source === "war_monitor") return formatDroneCountCell(compareEntry.nationwide_war_monitor);
+    if (source === "vanek_nikolaev") {
+      return formatDroneCountCell(compareEntry.nationwide_vanek_nikolaev);
+    }
+    if (source === "genstab") return formatDroneCountCell(compareEntry.genstab_launched);
+    return "—";
+  }
+
+  function chartDroneValue(value) {
+    return value === null || value === undefined ? null : value;
+  }
+
+  function groupedDronesRegionChartOptions() {
+    const opts = JSON.parse(JSON.stringify(CHART_DEFAULTS));
+    opts.plugins.legend = {
+      display: true,
+      labels: { color: "#aaa", font: { size: 10 }, boxWidth: 12 },
+    };
+    opts.scales.y.title = { display: true, text: "БпЛА", color: "#aaa", font: { size: 11 } };
+    return opts;
+  }
+
   function computeWeeklyFromAlerts(alerts) {
     const startWeekCounts = {};
     const weekSumHours = {};
@@ -938,6 +1032,7 @@
   global.KyivAlerts.getRaionFilter = getRaionFilter;
   global.KyivAlerts.raionToParam = raionToParam;
   global.KyivAlerts.filterAlertsByRaion = filterAlertsByRaion;
+  global.KyivAlerts.alertStartEnd = alertStartEnd;
   global.KyivAlerts.droneWindowKey = droneWindowKey;
   global.KyivAlerts.buildDroneMap = buildDroneMap;
   global.KyivAlerts.lookupDroneEntry = lookupDroneEntry;
@@ -949,6 +1044,18 @@
   global.KyivAlerts.formatWeeklyDroneSourceCell = formatWeeklyDroneSourceCell;
   global.KyivAlerts.sumKnownDronesFromAlerts = sumKnownDronesFromAlerts;
   global.KyivAlerts.sumKnownDroneSourceFromAlerts = sumKnownDroneSourceFromAlerts;
+  global.KyivAlerts.oblastWindowKey = oblastWindowKey;
+  global.KyivAlerts.oblastAlertStartEnd = oblastAlertStartEnd;
+  global.KyivAlerts.formatDroneCountCell = formatDroneCountCell;
+  global.KyivAlerts.buildDroneCompareDailyMap = buildDroneCompareDailyMap;
+  global.KyivAlerts.buildDroneCompareWeeklyMap = buildDroneCompareWeeklyMap;
+  global.KyivAlerts.fetchOptionalCSV = fetchOptionalCSV;
+  global.KyivAlerts.lookupDroneCompareDaily = lookupDroneCompareDaily;
+  global.KyivAlerts.lookupDroneCompareWeekly = lookupDroneCompareWeekly;
+  global.KyivAlerts.formatRegionCompareOblastCell = formatRegionCompareOblastCell;
+  global.KyivAlerts.formatRegionCompareNationwideCell = formatRegionCompareNationwideCell;
+  global.KyivAlerts.chartDroneValue = chartDroneValue;
+  global.KyivAlerts.groupedDronesRegionChartOptions = groupedDronesRegionChartOptions;
   global.KyivAlerts.computeDailyFromAlerts = computeDailyFromAlerts;
   global.KyivAlerts.computeWeeklyFromAlerts = computeWeeklyFromAlerts;
   global.KyivAlerts.syncQueryParams = syncQueryParams;
