@@ -1032,6 +1032,7 @@
   global.KyivAlerts.getRaionFilter = getRaionFilter;
   global.KyivAlerts.raionToParam = raionToParam;
   global.KyivAlerts.filterAlertsByRaion = filterAlertsByRaion;
+  global.KyivAlerts.alertStartEnd = alertStartEnd;
   global.KyivAlerts.droneWindowKey = droneWindowKey;
   global.KyivAlerts.buildDroneMap = buildDroneMap;
   global.KyivAlerts.lookupDroneEntry = lookupDroneEntry;
