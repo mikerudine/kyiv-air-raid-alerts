@@ -624,26 +624,20 @@
   async function init() {
     try {
       const bust = K.CACHE_BUST;
-      const [metaRes, dailyRes, alertsRes, districtsRes, dronesRes, compareDailyRes] =
+      const [metaData, alertsData, districtRows, droneRows, compareDailyRes] =
         await Promise.all([
-        fetch("data/meta.json?v=" + bust),
-        fetch("data/daily.csv?v=" + bust),
-        fetch("data/alerts.csv?v=" + bust),
-        fetch("data/districts.csv?v=" + bust),
-        fetch("data/drones.csv?v=" + bust),
-        fetch("data/drones-compare-daily.csv?v=" + bust),
-      ]);
+          K.fetchCityMeta(),
+          K.fetchTable("alerts"),
+          K.fetchTable("districts"),
+          K.fetchTable("drones"),
+          fetch("data/drones-compare-daily.csv?v=" + bust),
+        ]);
 
-      if (!metaRes.ok || !dailyRes.ok || !alertsRes.ok || !districtsRes.ok || !dronesRes.ok) {
-        throw new Error("Не вдалося завантажити дані");
-      }
-
-      meta = await metaRes.json();
-      dailyAll = K.parseCSV(await dailyRes.text());
-      alertsAll = K.parseCSV(await alertsRes.text());
-      const districtRows = K.parseCSV(await districtsRes.text());
+      meta = metaData;
+      alertsAll = alertsData;
+      dailyAll = K.computeDailyFromAlerts(alertsAll);
       windowRaionMap = K.buildWindowRaionMap(districtRows);
-      droneMap = K.buildDroneMap(K.parseCSV(await dronesRes.text()));
+      droneMap = K.buildDroneMap(droneRows);
       if (compareDailyRes.ok) {
         droneCompareDailyMap = K.buildDroneCompareDailyMap(
           K.parseCSV(await compareDailyRes.text())

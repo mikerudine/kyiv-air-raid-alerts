@@ -167,7 +167,260 @@
     return lastEvent ? lastEvent.slice(0, 10) : null;
   }
 
-  const CACHE_BUST = "d1e6b429";
+  const CACHE_BUST = "f3a8c712";
+
+  const SUPABASE_REST =
+    "https://maqdxmetyzpyupivyecz.supabase.co/rest/v1/";
+  const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hcWR4bWV0eXpweXVwaXZ5ZWN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNzEzNzEsImV4cCI6MjEwMzk0NzM3MX0.dEoUVLdT06az5B_qAxeEW52BuKvIbOQKBjUDhn16s7c";
+  const SUPABASE_PAGE_SIZE = 1000;
+  const KYIV_TZ = "Europe/Kyiv";
+
+  function supabaseAuthHeaders(rangeStart, rangeEnd) {
+    return {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY,
+      Accept: "application/json",
+      Prefer: "count=exact",
+      Range: rangeStart + "-" + rangeEnd,
+    };
+  }
+
+  function parseContentRangeTotal(contentRange) {
+    if (!contentRange) return null;
+    const starMatch = contentRange.match(/^\*\/(\d+)$/);
+    if (starMatch) return parseInt(starMatch[1], 10);
+    const rangeMatch = contentRange.match(/\/(\d+)$/);
+    return rangeMatch ? parseInt(rangeMatch[1], 10) : null;
+  }
+
+  async function fetchSupabasePages(pathQuery) {
+    const all = [];
+    let start = 0;
+    while (true) {
+      const end = start + SUPABASE_PAGE_SIZE - 1;
+      const res = await fetch(SUPABASE_REST + pathQuery, {
+        headers: supabaseAuthHeaders(start, end),
+      });
+      if (!res.ok) {
+        const detail = await res.text();
+        throw new Error("Supabase " + pathQuery.split("?")[0] + ": HTTP " + res.status + " " + detail);
+      }
+      const batch = await res.json();
+      all.push(...batch);
+      const total = parseContentRangeTotal(res.headers.get("Content-Range"));
+      if (total === 0 || batch.length === 0) break;
+      if (total != null && all.length >= total) break;
+      if (batch.length < SUPABASE_PAGE_SIZE) break;
+      start += SUPABASE_PAGE_SIZE;
+    }
+    return all;
+  }
+
+  function kyivOffsetForInstant(d) {
+    const part = new Intl.DateTimeFormat("en-US", {
+      timeZone: KYIV_TZ,
+      timeZoneName: "shortOffset",
+    })
+      .formatToParts(d)
+      .find((p) => p.type === "timeZoneName");
+    const raw = part ? part.value : "GMT+2";
+    const m = raw.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
+    if (!m) return "+02:00";
+    const sign = m[1];
+    const hours = String(parseInt(m[2], 10)).padStart(2, "0");
+    const mins = m[3] || "00";
+    return sign + hours + ":" + mins;
+  }
+
+  function kyivPartsFromISO(iso) {
+    const d = new Date(iso);
+    const parts = Object.fromEntries(
+      new Intl.DateTimeFormat("en-GB", {
+        timeZone: KYIV_TZ,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hourCycle: "h23",
+        hour12: false,
+      })
+        .formatToParts(d)
+        .map((p) => [p.type, p.value])
+    );
+    return { d, parts };
+  }
+
+  function isoFraction(iso) {
+    const m = String(iso).match(/T\d{2}:\d{2}:\d{2}(\.\d+)/);
+    return m ? m[1] : "";
+  }
+
+  function formatKyivISO(iso) {
+    if (!iso) return "";
+    const { d, parts } = kyivPartsFromISO(iso);
+    const frac = isoFraction(iso);
+    return (
+      parts.year +
+      "-" +
+      parts.month +
+      "-" +
+      parts.day +
+      "T" +
+      parts.hour +
+      ":" +
+      parts.minute +
+      ":" +
+      parts.second +
+      frac +
+      kyivOffsetForInstant(d)
+    );
+  }
+
+  function formatKyivNaive(iso) {
+    if (!iso) return "";
+    const { parts } = kyivPartsFromISO(iso);
+    return (
+      parts.year +
+      "-" +
+      parts.month +
+      "-" +
+      parts.day +
+      " " +
+      parts.hour +
+      ":" +
+      parts.minute +
+      ":" +
+      parts.second
+    );
+  }
+
+  function normalizeDate(val) {
+    return String(val).slice(0, 10);
+  }
+
+  function normalizeHour(val) {
+    return String(parseInt(val, 10));
+  }
+
+  function normalizeHours(val) {
+    return Number(val).toFixed(1);
+  }
+
+  function normalizeDroneCount(val) {
+    return val === null || val === undefined ? null : val;
+  }
+
+  function normalizeAlertRow(row) {
+    return {
+      date: normalizeDate(row.date),
+      hour_start: normalizeHour(row.hour_start),
+      hour_end: normalizeHour(row.hour_end),
+      hours: normalizeHours(row.hours),
+    };
+  }
+
+  function normalizeDroneRow(row) {
+    return {
+      date: normalizeDate(row.date),
+      hour_start: normalizeHour(row.hour_start),
+      hour_end: normalizeHour(row.hour_end),
+      hours: normalizeHours(row.hours),
+      drones: normalizeDroneCount(row.drones),
+      confidence: row.confidence || "",
+      drones_war_monitor: normalizeDroneCount(row.drones_war_monitor),
+      drones_vanek_nikolaev: normalizeDroneCount(row.drones_vanek_nikolaev),
+    };
+  }
+
+  function normalizeDistrictRow(row) {
+    return {
+      date: normalizeDate(row.date),
+      hour: normalizeHour(row.hour),
+      district: row.district || "",
+      matched_term: row.matched_term || "",
+      window_start: formatKyivISO(row.window_start),
+      window_end: formatKyivISO(row.window_end),
+      hours: normalizeHours(row.hours),
+      post_id: row.post_id != null ? String(row.post_id) : "",
+      post_url: row.post_url || "",
+      post_text_short: row.post_text_short || "",
+    };
+  }
+
+  function normalizeOblastDistrictRow(row) {
+    const base = normalizeDistrictRow(row);
+    base.hour_start = normalizeHour(row.hour_start);
+    base.hour_end = normalizeHour(row.hour_end);
+    return base;
+  }
+
+  function normalizeOblastRow(row) {
+    return {
+      date: normalizeDate(row.date),
+      hour_start: normalizeHour(row.hour_start),
+      hour_end: normalizeHour(row.hour_end),
+      hours: normalizeHours(row.hours),
+      source: row.source || "",
+    };
+  }
+
+  const TABLE_NORMALIZERS = {
+    alerts: normalizeAlertRow,
+    drones: normalizeDroneRow,
+    districts: normalizeDistrictRow,
+    oblast: normalizeOblastRow,
+    oblast_districts: normalizeOblastDistrictRow,
+  };
+
+  async function fetchTable(name) {
+    const normalizer = TABLE_NORMALIZERS[name];
+    if (!normalizer) throw new Error("Unknown Supabase table: " + name);
+    const rows = await fetchSupabasePages(name + "?select=*");
+    return rows.map(normalizer);
+  }
+
+  async function fetchCityMeta() {
+    const rows = await fetchSupabasePages("city_meta?id=eq.1&select=*");
+    if (!rows.length) throw new Error("city_meta row missing");
+    const row = rows[0];
+    return {
+      last_event: formatKyivNaive(row.last_event),
+      n_closed_2026: row.n_closed_2026,
+      sum_hours_2026: row.sum_hours_2026,
+      generated_at_kyiv: formatKyivNaive(row.generated_at_kyiv),
+      source_url: row.source_url || "",
+      alert_open: !!row.alert_open,
+    };
+  }
+
+  async function fetchOblastMeta() {
+    const rows = await fetchSupabasePages("oblast_meta?id=eq.1&select=*");
+    if (!rows.length) throw new Error("oblast_meta row missing");
+    const row = rows[0];
+    const extra = row.extra && typeof row.extra === "object" ? row.extra : {};
+    const out = {
+      last_event: formatKyivNaive(row.last_event),
+      n_windows: row.n_windows,
+      n_hours: row.n_hours,
+      n_mention_rows: row.n_mention_rows,
+      n_windows_with_raion: row.n_windows_with_raion,
+      n_unspecified: row.n_unspecified,
+      alert_open: !!row.alert_open,
+      scraped_at_kyiv: row.scraped_at_kyiv ? formatKyivISO(row.scraped_at_kyiv) : "",
+      sources: row.sources || {},
+      last_post_id: row.last_post_id,
+      last_post_kyiv: row.last_post_kyiv ? formatKyivISO(row.last_post_kyiv) : "",
+      n_posts: row.n_posts,
+      open_window: row.open_window == null ? null : row.open_window,
+    };
+    Object.keys(extra).forEach((key) => {
+      out[key] = extra[key];
+    });
+    return out;
+  }
 
   const OFFICIAL_RAIONS = [
     "Голосіївський",
@@ -809,6 +1062,9 @@
   global.KyivAlerts.mountRaionFilter = mountRaionFilter;
   global.KyivAlerts.readDateParams = readDateParams;
   global.KyivAlerts.syncDateParams = syncDateParams;
+  global.KyivAlerts.fetchTable = fetchTable;
+  global.KyivAlerts.fetchCityMeta = fetchCityMeta;
+  global.KyivAlerts.fetchOblastMeta = fetchOblastMeta;
   global.KyivAlerts.parseCSV = parseCSV;
   global.KyivAlerts.parseDate = parseDate;
   global.KyivAlerts.formatISO = formatISO;

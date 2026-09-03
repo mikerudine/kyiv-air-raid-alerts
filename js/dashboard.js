@@ -289,7 +289,7 @@
   function updateSourceFooters() {
     const text =
       "Джерело: Київ Цифровий • до " + meta.last_event.replace(" ", " ") + " ";
-    document.querySelectorAll(".chart-source:not(.chart-source-drones)").forEach((el) => {
+    document.querySelectorAll(".chart-source:not(.chart-source-drones):not(.chart-source-drones-region)").forEach((el) => {
       el.textContent = text;
     });
   }
@@ -306,32 +306,19 @@
   async function init() {
     try {
       const bust = K.CACHE_BUST;
-      const [metaRes, weeklyRes, alertsRes, districtsRes, dronesRes, compareWeeklyRes] =
+      const [metaData, alertsData, districtRows, droneRows, compareWeeklyRes] =
         await Promise.all([
-        fetch("data/meta.json?v=" + bust),
-        fetch("data/weekly.csv?v=" + bust),
-        fetch("data/alerts.csv?v=" + bust),
-        fetch("data/districts.csv?v=" + bust),
-        fetch("data/drones.csv?v=" + bust),
-        fetch("data/drones-compare-weekly.csv?v=" + bust),
-      ]);
+          K.fetchCityMeta(),
+          K.fetchTable("alerts"),
+          K.fetchTable("districts"),
+          K.fetchTable("drones"),
+          fetch("data/drones-compare-weekly.csv?v=" + bust),
+        ]);
 
-      if (
-        !metaRes.ok ||
-        !weeklyRes.ok ||
-        !alertsRes.ok ||
-        !districtsRes.ok ||
-        !dronesRes.ok
-      ) {
-        throw new Error("Не вдалося завантажити дані");
-      }
-
-      meta = await metaRes.json();
-      const weekly = K.parseCSV(await weeklyRes.text());
-      alertsAll = K.parseCSV(await alertsRes.text());
-      const districtRows = K.parseCSV(await districtsRes.text());
+      meta = metaData;
+      alertsAll = alertsData;
       windowRaionMap = K.buildWindowRaionMap(districtRows);
-      droneMap = K.buildDroneMap(K.parseCSV(await dronesRes.text()));
+      droneMap = K.buildDroneMap(droneRows);
       if (compareWeeklyRes.ok) {
         droneCompareWeeklyMap = K.buildDroneCompareWeeklyMap(
           K.parseCSV(await compareWeeklyRes.text())
@@ -340,12 +327,12 @@
         droneCompareWeeklyMap = new Map();
       }
 
-      weeklyAll = weekly
-        .filter((w) => parseInt(w.iso_year, 10) === YEAR)
-        .sort((a, b) => {
-          if (a.iso_year !== b.iso_year) return a.iso_year - b.iso_year;
-          return a.iso_week - b.iso_week;
-        });
+      weeklyAll = K.computeWeeklyFromAlerts(
+        alertsAll.filter((a) => a.date.startsWith(String(YEAR)))
+      ).sort((a, b) => {
+        if (a.iso_year !== b.iso_year) return a.iso_year - b.iso_year;
+        return a.iso_week - b.iso_week;
+      });
 
       document.getElementById("loading").style.display = "none";
       document.getElementById("dashboard").style.display = "block";

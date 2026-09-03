@@ -896,24 +896,23 @@
 
   async function init() {
     try {
-      const [csvRes, geoRes, alertsRes] = await Promise.all([
-        fetch("data/districts.csv?v=" + CACHE_BUST),
+      const [districtRows, geoRes, alertsData] = await Promise.all([
+        K.fetchTable("districts"),
         fetch("data/kyiv-raions.geojson?v=" + CACHE_BUST),
-        fetch("data/alerts.csv?v=" + CACHE_BUST),
+        K.fetchTable("alerts"),
       ]);
 
-      if (!csvRes.ok || !geoRes.ok || !alertsRes.ok) {
+      if (!geoRes.ok) {
         throw new Error("Не вдалося завантажити дані");
       }
 
-      const csvText = await csvRes.text();
-      if (!csvText.trim()) {
-        throw new Error("data/districts.csv порожній — потрібен валідний файл даних");
+      if (!districtRows.length) {
+        throw new Error("districts порожній — потрібен валідний набір даних");
       }
 
-      allRows = K.parseCSV(csvText);
+      allRows = districtRows;
       geojson = await geoRes.json();
-      allAlerts = buildAlertDates(K.parseCSV(await alertsRes.text()));
+      allAlerts = buildAlertDates(alertsData);
       windowRaionMap = K.buildWindowRaionMap(allRows);
 
       const windowDates = [...new Set(allRows.map(windowStartDate))].sort(K.compareDates);
