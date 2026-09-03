@@ -160,37 +160,15 @@
     });
   }
 
-  function fillDronesCompareTable(series) {
-    const tbody = document.querySelector("#drones-compare-table tbody");
-    if (!tbody) return;
-    tbody.innerHTML = "";
-    const dronesByDate = dailyDronesMap();
-    series.forEach((row) => {
-      const stats = dronesByDate[row.date];
-      const tr = document.createElement("tr");
-      tr.innerHTML =
-        "<td>" +
-        K.formatDayLabel(row.date) +
-        "</td>" +
-        '<td class="num">' +
-        K.formatDailyDroneSourceCell(stats, "kievreal1") +
-        "</td>" +
-        '<td class="num">' +
-        K.formatDailyDroneSourceCell(stats, "war_monitor") +
-        "</td>" +
-        '<td class="num">' +
-        K.formatDailyDroneSourceCell(stats, "vanek_nikolaev") +
-        "</td>";
-      tbody.appendChild(tr);
-    });
-  }
-
-  function fillDronesRegionCompareTable(series) {
+  function fillDronesRegionCompareTable(tableSeries) {
     const tbody = document.querySelector("#drones-region-compare-table tbody");
     if (!tbody) return;
     tbody.innerHTML = "";
     const dronesByDate = dailyDronesMap();
-    series.forEach((row) => {
+    tableSeries
+      .slice()
+      .reverse()
+      .forEach((row) => {
       const stats = dronesByDate[row.date];
       const compare = K.lookupDroneCompareDaily(droneCompareDailyMap, row.date);
       const tr = document.createElement("tr");
@@ -266,11 +244,11 @@
     });
   }
 
-  function fillTable(series) {
+  function fillTable(tableSeries) {
     const tbody = document.querySelector("#days-table tbody");
     tbody.innerHTML = "";
     const dronesByDate = dailyDronesMap();
-    series
+    tableSeries
       .slice()
       .reverse()
       .forEach((row) => {
@@ -320,7 +298,7 @@
 
   function updateSourceFooters() {
     const text = "Джерело: Київ Цифровий • до " + meta.last_event;
-    document.querySelectorAll(".chart-source:not(.chart-source-drones):not(.chart-source-gantt):not(.chart-source-drones-region)").forEach((el) => {
+    document.querySelectorAll(".chart-source:not(.chart-source-gantt):not(.chart-source-drones-region)").forEach((el) => {
       el.textContent = text;
     });
   }
@@ -354,6 +332,11 @@
       end,
       dates: K.dateRangeInclusive(start, end),
     };
+  }
+
+  function tableSevenDaySeries() {
+    const { start, end } = ganttSevenDayRange();
+    return seriesForRange(start, end);
   }
 
   function ganttRangeSubtitle(start, end) {
@@ -539,14 +522,14 @@
     rebuildDailyMap();
     const { start, end } = getRangeValues();
     const series = seriesForRange(start, end);
+    const tableSeries = tableSevenDaySeries();
     const labels = series.map((d) => K.formatDayLabel(d.date));
     const kpi = rangeKPIs(series);
 
     updateKPIs(kpi, rangeDroneSum(start, end));
     updateRangeCaption(start, end);
-    fillTable(series);
-    fillDronesCompareTable(series);
-    fillDronesRegionCompareTable(series);
+    fillTable(tableSeries);
+    fillDronesRegionCompareTable(tableSeries);
 
     destroyCharts();
     makeChart(
@@ -583,14 +566,6 @@
       "#9b8ec4",
       "#d4a017",
       60
-    );
-    makeChart(
-      "chart-drones",
-      "БпЛА",
-      series.map((d) => d.drones_sum),
-      labels,
-      "#d47a4a",
-      "#e8b84a"
     );
     makeDronesRegionChart(series, labels);
     makeGanttChart();
