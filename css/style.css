@@ -248,29 +248,29 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  width: 100%;
 }
 
-@media (min-width: 900px) {
-  .drones-compare-row {
-    flex-direction: row;
-    align-items: stretch;
-  }
+.drones-compare-row .chart-wrap {
+  width: 100%;
+  min-width: 0;
+  flex-shrink: 0;
+}
 
-  .drones-compare-row .chart-wrap {
-    flex: 1 1 55%;
-    min-width: 0;
-  }
-
-  .drones-compare-table-wrap {
-    flex: 0 1 45%;
-    min-width: 0;
-    max-height: 220px;
-    overflow: auto;
-  }
+.drones-compare-table-wrap {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
 }
 
 .drones-compare-table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border-collapse: collapse;
   font-size: 0.75rem;
 }
@@ -289,6 +289,7 @@ h1 {
   position: sticky;
   top: 0;
   background: var(--surface);
+  z-index: 1;
 }
 
 .drones-compare-table td.num {
@@ -296,19 +297,33 @@ h1 {
   font-variant-numeric: tabular-nums;
 }
 
-.drones-region-table-wrap {
-  max-height: 260px;
+.drones-region-compare-table {
+  min-width: 42rem;
 }
 
 .drones-region-compare-table th,
 .drones-region-compare-table td {
   font-size: 0.68rem;
-  white-space: normal;
+  white-space: nowrap;
   line-height: 1.25;
-  max-width: 5.5rem;
 }
 
 @media (min-width: 900px) {
+  .drones-compare-row {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .drones-compare-row .chart-wrap {
+    flex: 1 1 55%;
+  }
+
+  .drones-compare-table-wrap {
+    flex: 0 1 45%;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
   .drones-region-table-wrap {
     flex: 0 1 48%;
     max-height: 280px;

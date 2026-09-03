@@ -79,6 +79,17 @@
     return out;
   }
 
+  function recentCalendarDays(endDate, count) {
+    const start = addDays(endDate, -(count - 1));
+    return dateRangeInclusive(start, endDate);
+  }
+
+  function takeRecentIsoWeeks(weeklyRows, count) {
+    if (!weeklyRows.length) return [];
+    const recent = weeklyRows.length <= count ? weeklyRows.slice() : weeklyRows.slice(-count);
+    return recent.reverse();
+  }
+
   function formatDayLabel(dateStr) {
     const d = parseDate(dateStr);
     const dd = String(d.getDate()).padStart(2, "0");
@@ -167,7 +178,7 @@
     return lastEvent ? lastEvent.slice(0, 10) : null;
   }
 
-  const CACHE_BUST = "f3a8c712";
+  const CACHE_BUST = "b7e4d921";
 
   const SUPABASE_REST =
     "https://maqdxmetyzpyupivyecz.supabase.co/rest/v1/";
@@ -1073,6 +1084,8 @@
   global.KyivAlerts.compareDates = compareDates;
   global.KyivAlerts.clampDate = clampDate;
   global.KyivAlerts.dateRangeInclusive = dateRangeInclusive;
+  global.KyivAlerts.recentCalendarDays = recentCalendarDays;
+  global.KyivAlerts.takeRecentIsoWeeks = takeRecentIsoWeeks;
   global.KyivAlerts.formatDayLabel = formatDayLabel;
   global.KyivAlerts.formatDayLabelLong = formatDayLabelLong;
   global.KyivAlerts.weekdayIndex = weekdayIndex;

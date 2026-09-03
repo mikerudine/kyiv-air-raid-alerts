@@ -54,8 +54,11 @@
     makeChart("chart-mean", "години", "mean_hours", "#5b9bd5", "#e8913a", 2.5);
     makeChart("chart-median", "години", "median_hours", "#4a9b8e", "#e8913a", 1.4);
     makeChart("chart-count", "тривоги", "n_alerts", "#9b8ec4", "#d4a017", 60);
-    makeDronesChart();
     makeDronesRegionChart();
+  }
+
+  function tableWeeklyDrones() {
+    return K.takeRecentIsoWeeks(window.__weeklyDrones2026 || [], 8);
   }
 
   function weeklyDroneCityValue(weekStats) {
@@ -67,8 +70,7 @@
     const tbody = document.querySelector("#drones-region-compare-table tbody");
     if (!tbody) return;
     tbody.innerHTML = "";
-    const weeklyDrones = window.__weeklyDrones2026 || [];
-    weeklyDrones.forEach((w) => {
+    tableWeeklyDrones().forEach((w) => {
       const compare = K.lookupDroneCompareWeekly(
         droneCompareWeeklyMap,
         w.iso_year,
@@ -140,61 +142,6 @@
             label: "Київська область",
             data: oblastValues,
             backgroundColor: "#5b9bd5",
-            borderWidth: 0,
-            borderRadius: 2,
-          },
-        ],
-      },
-      options: opts,
-      plugins: [K.valueLabelsPlugin()],
-    });
-  }
-
-  function fillDronesCompareTable() {
-    const tbody = document.querySelector("#drones-compare-table tbody");
-    if (!tbody) return;
-    tbody.innerHTML = "";
-    const weeklyDrones = window.__weeklyDrones2026 || [];
-    weeklyDrones.forEach((w) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML =
-        "<td>" +
-        formatWeekLabel(w.week_start) +
-        "</td>" +
-        '<td class="num">' +
-        K.formatWeeklyDroneSourceCell(w, "kievreal1") +
-        "</td>" +
-        '<td class="num">' +
-        K.formatWeeklyDroneSourceCell(w, "war_monitor") +
-        "</td>" +
-        '<td class="num">' +
-        K.formatWeeklyDroneSourceCell(w, "vanek_nikolaev") +
-        "</td>";
-      tbody.appendChild(tr);
-    });
-  }
-
-  function makeDronesChart() {
-    const canvas = document.getElementById("chart-drones");
-    if (!canvas) return;
-
-    const weeklyDrones = window.__weeklyDrones2026 || [];
-    const labels = weeklyDrones.map((w) => formatWeekLabel(w.week_start));
-    const values = weeklyDrones.map((w) => w.drones || 0);
-
-    const opts = JSON.parse(JSON.stringify(K.CHART_DEFAULTS));
-    opts.scales.y.title = { display: true, text: "БпЛА", color: "#aaa", font: { size: 11 } };
-
-    if (charts["chart-drones"]) charts["chart-drones"].destroy();
-
-    charts["chart-drones"] = new Chart(canvas, {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [
-          {
-            data: values,
-            backgroundColor: K.barColors(values, "#d47a4a", "#e8b84a"),
             borderWidth: 0,
             borderRadius: 2,
           },
@@ -289,7 +236,7 @@
   function updateSourceFooters() {
     const text =
       "Джерело: Київ Цифровий • до " + meta.last_event.replace(" ", " ") + " ";
-    document.querySelectorAll(".chart-source:not(.chart-source-drones):not(.chart-source-drones-region)").forEach((el) => {
+    document.querySelectorAll(".chart-source:not(.chart-source-drones-region)").forEach((el) => {
       el.textContent = text;
     });
   }
@@ -298,7 +245,6 @@
     updateWeeklyData();
     updateKPIs();
     fillRecentTable();
-    fillDronesCompareTable();
     fillDronesRegionCompareTable();
     refreshCharts();
   }
