@@ -28,6 +28,7 @@
     const opts = JSON.parse(JSON.stringify(K.CHART_DEFAULTS));
     opts.scales.y.title = { display: true, text: yLabel, color: "#aaa", font: { size: 11 } };
     if (yMax) opts.scales.y.max = yMax;
+    K.applyMobileBarXAxis(opts, labels.length);
 
     if (charts[canvasId]) charts[canvasId].destroy();
 
@@ -123,6 +124,7 @@
     });
 
     const opts = K.groupedDronesRegionChartOptions();
+    K.applyMobileBarXAxis(opts, labels.length);
 
     if (charts["chart-drones-region"]) charts["chart-drones-region"].destroy();
 
