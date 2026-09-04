@@ -253,27 +253,20 @@
 
   async function init() {
     try {
-      const bust = K.CACHE_BUST;
-      const [metaData, alertsData, districtRows, droneRows, compareWeeklyRes] =
+      const [metaData, alertsData, districtRows, droneRows, compareWeeklyRows] =
         await Promise.all([
           K.fetchCityMeta(),
           K.fetchTable("alerts"),
           K.fetchTable("districts"),
           K.fetchTable("drones"),
-          fetch("data/drones-compare-weekly.csv?v=" + bust),
+          K.fetchTable("drones_compare_weekly"),
         ]);
 
       meta = metaData;
       alertsAll = alertsData;
       windowRaionMap = K.buildWindowRaionMap(districtRows);
       droneMap = K.buildDroneMap(droneRows);
-      if (compareWeeklyRes.ok) {
-        droneCompareWeeklyMap = K.buildDroneCompareWeeklyMap(
-          K.parseCSV(await compareWeeklyRes.text())
-        );
-      } else {
-        droneCompareWeeklyMap = new Map();
-      }
+      droneCompareWeeklyMap = K.buildDroneCompareWeeklyMap(compareWeeklyRows);
 
       weeklyAll = K.computeWeeklyFromAlerts(
         alertsAll.filter((a) => a.date.startsWith(String(YEAR)))
