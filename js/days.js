@@ -604,14 +604,13 @@
 
   async function init() {
     try {
-      const bust = K.CACHE_BUST;
-      const [metaData, alertsData, districtRows, droneRows, compareDailyRes] =
+      const [metaData, alertsData, districtRows, droneRows, compareDailyRows] =
         await Promise.all([
           K.fetchCityMeta(),
           K.fetchTable("alerts"),
           K.fetchTable("districts"),
           K.fetchTable("drones"),
-          fetch("data/drones-compare-daily.csv?v=" + bust),
+          K.fetchTable("drones_compare_daily"),
         ]);
 
       meta = metaData;
@@ -619,13 +618,7 @@
       dailyAll = K.computeDailyFromAlerts(alertsAll);
       windowRaionMap = K.buildWindowRaionMap(districtRows);
       droneMap = K.buildDroneMap(droneRows);
-      if (compareDailyRes.ok) {
-        droneCompareDailyMap = K.buildDroneCompareDailyMap(
-          K.parseCSV(await compareDailyRes.text())
-        );
-      } else {
-        droneCompareDailyMap = new Map();
-      }
+      droneCompareDailyMap = K.buildDroneCompareDailyMap(compareDailyRows);
 
       const dates = dailyAll.map((r) => r.date).sort(K.compareDates);
       dataMin = dates[0];

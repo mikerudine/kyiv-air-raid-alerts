@@ -209,7 +209,7 @@
     return lastEvent ? lastEvent.slice(0, 10) : null;
   }
 
-  const CACHE_BUST = "d9b2e4a1";
+  const CACHE_BUST = "e8c3f5b2";
 
   const SUPABASE_REST =
     "https://maqdxmetyzpyupivyecz.supabase.co/rest/v1/";
@@ -409,12 +409,45 @@
     };
   }
 
+  function normalizeDroneCompareDailyRow(row) {
+    return {
+      date: normalizeDate(row.date),
+      oblast_drones: normalizeDroneCount(row.oblast_drones),
+      nationwide_drones_war_monitor: normalizeDroneCount(
+        row.nationwide_drones_war_monitor
+      ),
+      nationwide_drones_vanek_nikolaev: normalizeDroneCount(
+        row.nationwide_drones_vanek_nikolaev
+      ),
+      genstab_launched: normalizeDroneCount(row.genstab_launched),
+    };
+  }
+
+  function normalizeDroneCompareWeeklyRow(row) {
+    return {
+      iso_year: row.iso_year,
+      iso_week: row.iso_week,
+      week_start: normalizeDate(row.week_start),
+      week_end: normalizeDate(row.week_end),
+      oblast_drones: normalizeDroneCount(row.oblast_drones),
+      nationwide_drones_war_monitor: normalizeDroneCount(
+        row.nationwide_drones_war_monitor
+      ),
+      nationwide_drones_vanek_nikolaev: normalizeDroneCount(
+        row.nationwide_drones_vanek_nikolaev
+      ),
+      genstab_launched: normalizeDroneCount(row.genstab_launched),
+    };
+  }
+
   const TABLE_NORMALIZERS = {
     alerts: normalizeAlertRow,
     drones: normalizeDroneRow,
     districts: normalizeDistrictRow,
     oblast: normalizeOblastRow,
     oblast_districts: normalizeOblastDistrictRow,
+    drones_compare_daily: normalizeDroneCompareDailyRow,
+    drones_compare_weekly: normalizeDroneCompareWeeklyRow,
   };
 
   async function fetchTable(name) {
