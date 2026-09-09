@@ -553,7 +553,7 @@
       labels,
       "#5b9bd5",
       "#e8913a",
-      2.5
+      5
     );
     makeChart(
       "chart-median",
@@ -562,7 +562,7 @@
       labels,
       "#4a9b8e",
       "#e8913a",
-      1.4
+      5
     );
     makeChart(
       "chart-count",

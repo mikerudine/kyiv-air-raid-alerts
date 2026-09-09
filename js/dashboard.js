@@ -52,8 +52,8 @@
 
   function refreshCharts() {
     makeChart("chart-sum", "години", "sum_hours", "#c45c4a", "#d4a017");
-    makeChart("chart-mean", "години", "mean_hours", "#5b9bd5", "#e8913a", 2.5);
-    makeChart("chart-median", "години", "median_hours", "#4a9b8e", "#e8913a", 1.4);
+    makeChart("chart-mean", "години", "mean_hours", "#5b9bd5", "#e8913a", 5);
+    makeChart("chart-median", "години", "median_hours", "#4a9b8e", "#e8913a", 5);
     makeChart("chart-count", "тривоги", "n_alerts", "#9b8ec4", "#d4a017", 60);
     makeDronesRegionChart();
   }
