@@ -209,7 +209,7 @@
     return lastEvent ? lastEvent.slice(0, 10) : null;
   }
 
-  const CACHE_BUST = "b5c9e1a4";
+  const CACHE_BUST = "c7h1t2k0";
 
   const SUPABASE_REST =
     "https://maqdxmetyzpyupivyecz.supabase.co/rest/v1/";
@@ -468,6 +468,45 @@
       generated_at_kyiv: formatKyivNaive(row.generated_at_kyiv),
       source_url: row.source_url || "",
       alert_open: !!row.alert_open,
+    };
+  }
+
+  async function fetchHitsRaionStats(pFrom, pTo, weapon, impactOnly) {
+    const body = { p_from: pFrom, p_to: pTo };
+    if (weapon === "drone") body.p_weapon = "drone";
+    if (impactOnly) body.p_impact_only = true;
+    const res = await fetch(SUPABASE_REST + "rpc/hits_raion_stats", {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const detail = await res.text();
+      throw new Error("hits_raion_stats: HTTP " + res.status + " " + detail);
+    }
+    return res.json();
+  }
+
+  async function fetchHitsMeta() {
+    const rows = await fetchSupabasePages("hits_meta?id=eq.1&select=*");
+    if (!rows.length) throw new Error("hits_meta row missing");
+    const row = rows[0];
+    return {
+      last_post_id: row.last_post_id,
+      last_post_time: row.last_post_time ? formatKyivISO(row.last_post_time) : "",
+      last_post_time_display: row.last_post_time ? formatKyivNaive(row.last_post_time) : "",
+      scraped_from: normalizeDate(row.scraped_from || "2026-01-01"),
+      n_hit_posts: row.n_hit_posts,
+      n_rows: row.n_rows,
+      lag_minutes: row.lag_minutes,
+      scraped_at: row.scraped_at ? formatKyivNaive(row.scraped_at) : "",
+      source_url: row.source_url || "https://t.me/vitaliy_klitschko",
+      notes: row.notes || {},
     };
   }
 
@@ -1010,11 +1049,22 @@
       const next = new URLSearchParams();
       const raion = params.get("raion");
       if (raion) next.set("raion", raion);
-      if (page === "days.html" || page === "districts.html" || page === "oblast.html") {
+      if (
+        page === "days.html" ||
+        page === "districts.html" ||
+        page === "hits.html" ||
+        page === "oblast.html"
+      ) {
         const from = params.get("from");
         const to = params.get("to");
         if (from) next.set("from", from);
         if (to) next.set("to", to);
+      }
+      if (page === "hits.html") {
+        const weapon = params.get("weapon");
+        const impact = params.get("impact");
+        if (weapon === "drone") next.set("weapon", "drone");
+        if (impact === "1") next.set("impact", "1");
       }
       const qs = next.toString();
       link.setAttribute("href", page + (qs ? "?" + qs : ""));
@@ -1141,6 +1191,8 @@
   global.KyivAlerts.fetchTable = fetchTable;
   global.KyivAlerts.fetchCityMeta = fetchCityMeta;
   global.KyivAlerts.fetchOblastMeta = fetchOblastMeta;
+  global.KyivAlerts.fetchHitsRaionStats = fetchHitsRaionStats;
+  global.KyivAlerts.fetchHitsMeta = fetchHitsMeta;
   global.KyivAlerts.parseCSV = parseCSV;
   global.KyivAlerts.parseDate = parseDate;
   global.KyivAlerts.formatISO = formatISO;
