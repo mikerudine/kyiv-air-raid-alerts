@@ -827,3 +827,79 @@ footer a:hover {
 .chart-wrap-hbar {
   height: 320px;
 }
+
+.hits-filter-controls {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.hits-impact-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.hits-impact-toggle input {
+  margin-top: 0.2rem;
+  accent-color: var(--accent);
+}
+
+.hits-radar-section {
+  margin-bottom: 1.5rem;
+}
+
+.hits-radar-section h2,
+.hits-table-section h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.hits-radar-note,
+.hits-table-note {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.hits-radar-card {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.chart-wrap-radar {
+  height: min(420px, 72vw);
+  min-height: 280px;
+}
+
+@media (max-width: 767px) {
+  .chart-wrap-radar {
+    height: 340px;
+    min-height: 280px;
+  }
+}
+
+.hits-source-note {
+  margin: 0.85rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.hits-source-note a {
+  color: var(--accent);
+}
+
+#hits-table th[data-sort] {
+  user-select: none;
+}
