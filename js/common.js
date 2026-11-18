@@ -372,8 +372,6 @@
       hours: normalizeHours(row.hours),
       drones: normalizeDroneCount(row.drones),
       confidence: row.confidence || "",
-      drones_war_monitor: normalizeDroneCount(row.drones_war_monitor),
-      drones_vanek_nikolaev: normalizeDroneCount(row.drones_vanek_nikolaev),
     };
   }
 
@@ -413,12 +411,6 @@
     return {
       date: normalizeDate(row.date),
       oblast_drones: normalizeDroneCount(row.oblast_drones),
-      nationwide_drones_war_monitor: normalizeDroneCount(
-        row.nationwide_drones_war_monitor
-      ),
-      nationwide_drones_vanek_nikolaev: normalizeDroneCount(
-        row.nationwide_drones_vanek_nikolaev
-      ),
       genstab_launched: normalizeDroneCount(row.genstab_launched),
     };
   }
@@ -430,12 +422,6 @@
       week_start: normalizeDate(row.week_start),
       week_end: normalizeDate(row.week_end),
       oblast_drones: normalizeDroneCount(row.oblast_drones),
-      nationwide_drones_war_monitor: normalizeDroneCount(
-        row.nationwide_drones_war_monitor
-      ),
-      nationwide_drones_vanek_nikolaev: normalizeDroneCount(
-        row.nationwide_drones_vanek_nikolaev
-      ),
       genstab_launched: normalizeDroneCount(row.genstab_launched),
     };
   }
@@ -717,8 +703,6 @@
       map.set(droneWindowKey(row), {
         drones: parseDroneCount(row.drones),
         confidence: row.confidence || "",
-        drones_war_monitor: parseDroneCount(row.drones_war_monitor),
-        drones_vanek_nikolaev: parseDroneCount(row.drones_vanek_nikolaev),
       });
     });
     return map;
@@ -737,14 +721,8 @@
   function emptyDailyDroneBucket() {
     return {
       sum: 0,
-      sum_war_monitor: 0,
-      sum_vanek_nikolaev: 0,
       n_known: 0,
-      n_known_war_monitor: 0,
-      n_known_vanek_nikolaev: 0,
       n_unknown: 0,
-      n_unknown_war_monitor: 0,
-      n_unknown_vanek_nikolaev: 0,
       n_windows: 0,
     };
   }
@@ -766,22 +744,6 @@
       bucket.n_windows += 1;
       const entry = lookupDroneEntry(droneMap, a);
       accumulateDroneSource(bucket, entry, "drones", "sum", "n_known", "n_unknown");
-      accumulateDroneSource(
-        bucket,
-        entry,
-        "drones_war_monitor",
-        "sum_war_monitor",
-        "n_known_war_monitor",
-        "n_unknown_war_monitor"
-      );
-      accumulateDroneSource(
-        bucket,
-        entry,
-        "drones_vanek_nikolaev",
-        "sum_vanek_nikolaev",
-        "n_known_vanek_nikolaev",
-        "n_unknown_vanek_nikolaev"
-      );
     });
     return byDate;
   }
@@ -794,14 +756,6 @@
   function formatDailyDroneSourceCell(dayStats, source) {
     if (!dayStats || dayStats.n_windows === 0) return "—";
     if (source === "kievreal1") return formatDailyDronesCell(dayStats);
-    if (source === "war_monitor") {
-      if (dayStats.n_known_war_monitor === 0) return "—";
-      return String(dayStats.sum_war_monitor);
-    }
-    if (source === "vanek_nikolaev") {
-      if (dayStats.n_known_vanek_nikolaev === 0) return "—";
-      return String(dayStats.sum_vanek_nikolaev);
-    }
     return "—";
   }
 
@@ -813,14 +767,8 @@
       week_start: bounds.week_start,
       week_end: bounds.week_end,
       drones: 0,
-      drones_war_monitor: 0,
-      drones_vanek_nikolaev: 0,
       n_known: 0,
-      n_known_war_monitor: 0,
-      n_known_vanek_nikolaev: 0,
       n_unknown: 0,
-      n_unknown_war_monitor: 0,
-      n_unknown_vanek_nikolaev: 0,
       n_windows: 0,
     };
   }
@@ -837,22 +785,6 @@
       bucket.n_windows += 1;
       const entry = lookupDroneEntry(droneMap, a);
       accumulateDroneSource(bucket, entry, "drones", "drones", "n_known", "n_unknown");
-      accumulateDroneSource(
-        bucket,
-        entry,
-        "drones_war_monitor",
-        "drones_war_monitor",
-        "n_known_war_monitor",
-        "n_unknown_war_monitor"
-      );
-      accumulateDroneSource(
-        bucket,
-        entry,
-        "drones_vanek_nikolaev",
-        "drones_vanek_nikolaev",
-        "n_known_vanek_nikolaev",
-        "n_unknown_vanek_nikolaev"
-      );
     });
 
     return Object.keys(byWeek)
@@ -865,14 +797,6 @@
     if (source === "kievreal1") {
       if (weekStats.n_known === 0) return "—";
       return String(weekStats.drones);
-    }
-    if (source === "war_monitor") {
-      if (weekStats.n_known_war_monitor === 0) return "—";
-      return String(weekStats.drones_war_monitor);
-    }
-    if (source === "vanek_nikolaev") {
-      if (weekStats.n_known_vanek_nikolaev === 0) return "—";
-      return String(weekStats.drones_vanek_nikolaev);
     }
     return "—";
   }
@@ -917,8 +841,6 @@
     rows.forEach((row) => {
       map.set(row.date, {
         oblast_drones: parseDroneCount(row.oblast_drones),
-        nationwide_war_monitor: parseDroneCount(row.nationwide_drones_war_monitor),
-        nationwide_vanek_nikolaev: parseDroneCount(row.nationwide_drones_vanek_nikolaev),
         genstab_launched: parseDroneCount(row.genstab_launched),
       });
     });
@@ -935,8 +857,6 @@
         iso_week: isoWeek,
         week_start: row.week_start || "",
         oblast_drones: parseDroneCount(row.oblast_drones),
-        nationwide_war_monitor: parseDroneCount(row.nationwide_drones_war_monitor),
-        nationwide_vanek_nikolaev: parseDroneCount(row.nationwide_drones_vanek_nikolaev),
         genstab_launched: parseDroneCount(row.genstab_launched),
       });
     });
@@ -968,10 +888,6 @@
 
   function formatRegionCompareNationwideCell(compareEntry, source) {
     if (!compareEntry) return "—";
-    if (source === "war_monitor") return formatDroneCountCell(compareEntry.nationwide_war_monitor);
-    if (source === "vanek_nikolaev") {
-      return formatDroneCountCell(compareEntry.nationwide_vanek_nikolaev);
-    }
     if (source === "genstab") return formatDroneCountCell(compareEntry.genstab_launched);
     return "—";
   }
