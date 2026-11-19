@@ -209,7 +209,7 @@
     return lastEvent ? lastEvent.slice(0, 10) : null;
   }
 
-  const CACHE_BUST = "c7h1t2k0";
+  const CACHE_BUST = "r11191129";
 
   const SUPABASE_REST =
     "https://maqdxmetyzpyupivyecz.supabase.co/rest/v1/";
