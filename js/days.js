@@ -181,19 +181,7 @@
         K.formatDailyDroneSourceCell(stats, "kievreal1") +
         "</td>" +
         '<td class="num">' +
-        K.formatDailyDroneSourceCell(stats, "war_monitor") +
-        "</td>" +
-        '<td class="num">' +
-        K.formatDailyDroneSourceCell(stats, "vanek_nikolaev") +
-        "</td>" +
-        '<td class="num">' +
         K.formatRegionCompareOblastCell(compare) +
-        "</td>" +
-        '<td class="num">' +
-        K.formatRegionCompareNationwideCell(compare, "war_monitor") +
-        "</td>" +
-        '<td class="num">' +
-        K.formatRegionCompareNationwideCell(compare, "vanek_nikolaev") +
         "</td>" +
         '<td class="num">' +
         K.formatRegionCompareNationwideCell(compare, "genstab") +
@@ -276,12 +264,6 @@
           "</td>" +
           '<td class="num">' +
           row.drones_cell +
-          "</td>" +
-          '<td class="num">' +
-          K.formatDailyDroneSourceCell(dronesByDate[row.date], "war_monitor") +
-          "</td>" +
-          '<td class="num">' +
-          K.formatDailyDroneSourceCell(dronesByDate[row.date], "vanek_nikolaev") +
           "</td>" +
           (row.incomplete ? '<td class="incomplete-tag">неповний день</td>' : "<td></td>");
         tbody.appendChild(tr);

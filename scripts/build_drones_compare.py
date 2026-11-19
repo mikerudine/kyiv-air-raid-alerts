@@ -13,8 +13,7 @@ Optional manual overrides (verified Telegram @GeneralStaffZSU morning posts):
   2026-09-01: 218 launched (ніч на 1 вересня)
   2026-09-02: 174 launched (ніч на 2 вересня)
 
-Oblast @kievreal1 and nationwide @war_monitor / @vanek_nikolaev columns stay empty until
-a follow-up supplies real overlays (do not invent).
+The oblast @kievreal1 column stays empty here until a follow-up supplies real overlays (do not invent).
 """
 
 from __future__ import annotations
@@ -99,8 +98,6 @@ def write_compare_csvs(genstab_by_date: dict[str, int]) -> None:
             {
                 "date": date,
                 "oblast_drones": "",
-                "nationwide_drones_war_monitor": "",
-                "nationwide_drones_vanek_nikolaev": "",
                 "genstab_launched": str(genstab_by_date[date]),
             }
         )
@@ -122,8 +119,6 @@ def write_compare_csvs(genstab_by_date: dict[str, int]) -> None:
                 "iso_week": str(iso_week),
                 "week_start": week_start,
                 "oblast_drones": "",
-                "nationwide_drones_war_monitor": "",
-                "nationwide_drones_vanek_nikolaev": "",
                 "genstab_launched": str(total),
             }
         )
@@ -133,8 +128,6 @@ def write_compare_csvs(genstab_by_date: dict[str, int]) -> None:
     daily_fields = [
         "date",
         "oblast_drones",
-        "nationwide_drones_war_monitor",
-        "nationwide_drones_vanek_nikolaev",
         "genstab_launched",
     ]
     weekly_fields = [
@@ -142,8 +135,6 @@ def write_compare_csvs(genstab_by_date: dict[str, int]) -> None:
         "iso_week",
         "week_start",
         "oblast_drones",
-        "nationwide_drones_war_monitor",
-        "nationwide_drones_vanek_nikolaev",
         "genstab_launched",
     ]
     with daily_path.open("w", newline="", encoding="utf-8") as fh:
